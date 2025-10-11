@@ -6,7 +6,8 @@ export function TripsView() {
   const navigate = useNavigate()
   const { filteredTrips } = useAppContext()
   const trips = filteredTrips || []
-  
+
+
   if (trips.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -30,7 +31,7 @@ export function TripsView() {
           <TripCard
             key={trip.id}
             trip={trip}
-            onClick={() => onTripSelect(trip)}
+            onClick={() => navigate(`/trips/${trip.id}`)}
           />
         ))}
       </div>

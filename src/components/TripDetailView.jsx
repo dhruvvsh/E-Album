@@ -1,17 +1,29 @@
 import { ArrowLeft, Calendar, Users, MapPin, Plus } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
-import { ImageWithFallback } from './figma/ImageWithFallback'
+import { ImageWithFallback } from './figma/ImageWithFallback.jsx'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { MemoryCard } from './MemoryCard'
+import { MemoryCard } from './MemoryCard.jsx'
+import { useAppContext } from './AppContext.jsx'
 
-export function TripDetailView({ 
-  trip, 
-  onBack, 
-  onLike, 
-  onComment, 
-  onMemoryClick, 
-  onAddMemory 
-}) {
+export function TripDetailView() {
+  const { tripId } = useParams()
+  const navigate = useNavigate()
+  const { trips, handleLike, handleComment, handleMemoryClick } = useAppContext()
+  
+  const trip = trips?.find(t => t.id === tripId)
+  
+  if (!trip) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h3 className="mb-2">Trip not found</h3>
+          <p className="text-muted-foreground mb-4">The trip you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate('/trips')}>Back to Trips</Button>
+        </div>
+      </div>
+    )
+  }
   const formatDateRange = (start, end) => {
     const startDate = new Date(start).toLocaleDateString('en-US', { 
       month: 'long', 
@@ -30,9 +42,9 @@ export function TripDetailView({
     return `${startDate} - ${endDate}`
   }
 
-  const sortedMemories = [...trip.memories].sort(
+  const sortedMemories = trip?.memories ? [...trip.memories].sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-  )
+  ) : []
 
   return (
     <div className="min-h-full">
@@ -55,7 +67,7 @@ export function TripDetailView({
           variant="ghost"
           size="icon"
           className="absolute top-4 left-4 text-white hover:bg-white/20"
-          onClick={onBack}
+          onClick={() => navigate('/trips')}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -103,7 +115,7 @@ export function TripDetailView({
         {/* Memories Timeline */}
         <div className="flex items-center justify-between mb-6">
           <h3>Memories ({trip.memories.length})</h3>
-          <Button onClick={onAddMemory}>
+          <Button onClick={() => {/* TODO: Implement add memory */}}>
             <Plus className="h-4 w-4 mr-2" />
             Add Memory
           </Button>
@@ -112,7 +124,7 @@ export function TripDetailView({
         {sortedMemories.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground mb-4">No memories yet</div>
-            <Button onClick={onAddMemory} variant="outline">
+            <Button onClick={() => {/* TODO: Implement add memory */}} variant="outline">
               <Plus className="h-4 w-4 mr-2" />
               Add the first memory
             </Button>
@@ -123,9 +135,9 @@ export function TripDetailView({
               <MemoryCard
                 key={memory.id}
                 memory={memory}
-                onLike={onLike}
-                onComment={onComment}
-                onClick={() => onMemoryClick(memory)}
+                onLike={handleLike}
+                onComment={handleComment}
+                onClick={() => handleMemoryClick(memory)}
               />
             ))}
           </div>
