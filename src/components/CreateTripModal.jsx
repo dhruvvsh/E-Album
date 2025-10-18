@@ -56,6 +56,21 @@ export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
     onClose()
   }
 
+   
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageURL = URL.createObjectURL(file);
+      setFormData({ ...formData, coverPhoto: imageURL });
+    }
+  };
+
+  const handleButtonClick = () => {
+    // Trigger hidden file input
+    document.getElementById("coverPhoto").click();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -92,7 +107,40 @@ export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
           </div>
 
           {/* Cover Photo */}
-          <div className="space-y-2">
+      <div className="space-y-2">
+      <Label htmlFor="coverPhoto">Cover Photo</Label>
+
+      <div className="flex space-x-2 items-center">
+        
+        <Input
+          id="coverPhoto"
+          type="file"
+          accept="image/*"
+          placeholder="https://example.com/photo.jpg"
+          // value={formData.coverPhoto}
+          onChange={handleFileChange}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={handleButtonClick}
+        >
+          <Upload className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* {preview && (
+        <div className="mt-3">
+          <img
+            src={preview}
+            alt="Cover Preview"
+            className="w-full h-48 object-cover rounded-lg border"
+          />
+        </div>
+      )} */}
+    </div>
+          {/* <div className="space-y-2">
             <Label htmlFor="coverPhoto">Cover Photo URL</Label>
             <div className="flex space-x-2">
               <Input
@@ -105,7 +153,7 @@ export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
                 <Upload className="h-4 w-4" />
               </Button>
             </div>
-          </div>
+          </div> */}
 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
