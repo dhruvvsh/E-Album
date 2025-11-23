@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { CreateTripModal } from './CreateTripModal'
 import { PhotoModal } from './PhotoModal'
+import { ImageCarousel } from './ImageCarousel.jsx'
 import  sampleTrips  from '../App'
 import { useAppContext } from './AppContext.jsx'
 
@@ -17,6 +18,8 @@ const Layout = () => {
     isMemoryModalOpen,
     setIsMemoryModalOpen,
     selectedPhoto,
+    allMemories,
+    currentMemoryIndex,
     handleCreateTrip,
     handleLike
   } = useAppContext()
@@ -89,11 +92,11 @@ const Layout = () => {
               onCreateMemory={() => {/* TODO: Implement create memory */}}
             />
             
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto"> 
               <Outlet />
             </main>
           </div>
-    
+     
           <CreateTripModal
             isOpen={isCreateTripModalOpen}
             onClose={() => setIsCreateTripModalOpen(false)}
@@ -102,10 +105,18 @@ const Layout = () => {
     
           <PhotoModal
             photo={selectedPhoto}
-            isOpen={isMemoryModalOpen}
+            isOpen={isMemoryModalOpen} 
             onClose={() => setIsMemoryModalOpen(false)}
             onLike={handleLike}
           />
+         {/* <ImageCarousel
+         images={selectedPhoto}
+         memories={allMemories}
+        initialIndex={currentMemoryIndex}
+        isOpen={isMemoryModalOpen}
+        onClose={() => setIsMemoryModalOpen(false)}
+        onLike={handleLike}
+      /> */}
         </div>
 
   )

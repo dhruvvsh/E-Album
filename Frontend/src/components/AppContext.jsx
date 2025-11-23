@@ -247,6 +247,10 @@ export const AppProvider = ({ children }) => {
     tags: selectedMemory.location ? [selectedMemory.location] : []
   } : null
 
+//  const currentMemoryIndex = selectedMemory 
+//     ? allMemories.findIndex(m => m.id === selectedMemory.id)
+//     : 0
+
   const value = {
     searchQuery,
     setSearchQuery,
@@ -257,6 +261,7 @@ export const AppProvider = ({ children }) => {
     isCreateTripModalOpen,
     setIsCreateTripModalOpen,
     selectedMemory,
+    // currentMemoryIndex,
     setSelectedMemory,
     isMemoryModalOpen,
     setIsMemoryModalOpen,

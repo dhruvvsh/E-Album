@@ -22,7 +22,6 @@ export function MemoryCard({
     if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
     return time.toLocaleDateString()
   }
-
   return (
     <Card className="w-full max-w-md overflow-hidden">
       <CardHeader className="pb-3">
@@ -58,7 +57,7 @@ export function MemoryCard({
         <div 
           className="aspect-square overflow-hidden cursor-pointer"
           onClick={onClick}
-        >
+        >       
           <ImageWithFallback
             src={memory.image}
             alt={memory.description}
@@ -87,7 +86,7 @@ export function MemoryCard({
               >
                 <MessageCircle className="h-5 w-5 mr-1" />
                 <span>{memory.comments.length}</span>
-              </Button>
+              </Button> 
             </div>
             {memory.location && (
               <div className="flex items-center text-sm text-muted-foreground">

@@ -317,6 +317,7 @@ export default function App() {
           <Route path="/" element={<TripsView />} >
           </Route>
            <Route path="/trips/:tripId" element={<TripDetailView />} />
+           <Route path="/trips/:tripId/:albumId" element={<PhotoModal />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<Profile />} />
         </Route>

@@ -2,6 +2,7 @@ import { X, Heart, Download, Share2, ChevronLeft, ChevronRight } from 'lucide-re
 import { Button } from './ui/button'
 import { Dialog, DialogContent } from './ui/dialog'
 import { ImageWithFallback } from './figma/ImageWithFallback'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Badge } from './ui/badge'
 
 export function PhotoModal({ 
@@ -16,8 +17,13 @@ export function PhotoModal({
 }) {
   if (!photo) return null
 
+const { tripId , albumId} = useParams() 
+     const navigate = useNavigate() 
+
+     
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} >
       <DialogContent className="max-w-6xl w-full h-[90vh] p-0 bg-black/95">
         <div className="relative h-full flex">
           {/* Close button */}

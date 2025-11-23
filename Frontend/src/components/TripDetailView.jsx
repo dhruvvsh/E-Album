@@ -4,6 +4,7 @@ import { Button } from './ui/button'
 import { ImageWithFallback } from './figma/ImageWithFallback.jsx'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { MemoryCard } from './MemoryCard.jsx'
+import { ImageCarousel } from './ImageCarousel.jsx'
 import { useAppContext } from './AppContext.jsx'
 
 export function TripDetailView() {
@@ -137,8 +138,10 @@ export function TripDetailView() {
                 memory={memory}
                 onLike={handleLike}
                 onComment={handleComment}
-                onClick={() => handleMemoryClick(memory)}
+                // onClick={() => handleMemoryClick(memory)}
+                onClick={() => navigate(`/trips/${trip.id}/${album.id}`)}
               />
+              //  <ImageCarousel images={images} />
             ))}
           </div>
         )}
