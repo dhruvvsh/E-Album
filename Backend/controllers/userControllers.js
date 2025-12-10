@@ -1,10 +1,10 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/generateToken.js";
+import { generateToken } from "../utils/generateTokens.js";
 
 // SIGNUP
 export const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { username, email, password } = req.body;
 
   // Check existing user
   const userExists = await User.findOne({ email });
@@ -12,23 +12,18 @@ export const registerUser = async (req, res) => {
     return res.status(400).json({ message: "User already exists" });
 
   // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   // Create user
   const user = await User.create({
-    name,
+    username,
     email,
     password: hashedPassword,
-    role: role || "user",
   });
 
   res.json({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    token: generateToken(user._id),
+    message: "User registered successfully",
+    user,
   });
 };
 
@@ -45,9 +40,7 @@ export const loginUser = async (req, res) => {
   if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
   res.json({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
+    message: "Login successful",
     token: generateToken(user._id),
   });
 };
