@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import userrouter from "./routes/userRoutes.js";
 import triprouter from "./routes/tripRoutes.js";
+import cloudinarySignaturerouter from "./routes/cloudinaryRoutes.js";
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/users", userrouter);
 app.use("/trips", triprouter);
+app.use("/cloudinary", cloudinarySignaturerouter);
 
 // Connect MongoDB
 connectDB()
