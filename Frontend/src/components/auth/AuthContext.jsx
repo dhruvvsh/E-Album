@@ -9,6 +9,7 @@ export const useAuth = () => {
   }
   return context
 }
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -17,9 +18,11 @@ export const AuthProvider = ({ children }) => {
   // Check for stored user on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('tripMemoryUser')
-    if (storedUser) {
+    const token = localStorage.getItem('token')
+    if (storedUser && token) {
       try {
         setUser(JSON.parse(storedUser))
+        axios.defaults.headers.common={'Authorization':`Bearer ${token}`}
       } catch (error) {
         console.error('Error parsing stored user:', error)
         localStorage.removeItem('tripMemoryUser')
@@ -28,41 +31,41 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false)
   }, [])
 
-  // Mock login function
+  // Login function
   const login = async (email, password) => {
-    setIsLoading(true)
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Mock authentication - in real app, this would validate against backend
-    if (email && password) {
-      const mockUser = {
-        id: 'user-' + Date.now(),
-        name: email.split('@')[0], // Use email prefix as name for demo
-        email: email,
-        avatar: '',
-        joinedDate: new Date().toISOString()
-      }
-      
-      setUser(mockUser)
-      localStorage.setItem('tripMemoryUser', JSON.stringify(mockUser))
-      setIsLoading(false)
-      return { success: true }
-    } else {
-      setIsLoading(false)
-      return { success: false, error: 'Invalid email or password' }
+    try {
+      setIsLoading(true);
+
+      const res = await axios.post(`${API_URL}/login`, {
+        email,
+        password,
+      });
+
+      const { user, token } = res.data;
+
+      setUser(user);
+      localStorage.setItem("tripMemoryUser", JSON.stringify(user));
+      localStorage.setItem("tripMemoryToken", token);
+
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || "Login failed",
+      };
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  // Mock signup function
+  // Signup function
   const signup = async (name, email, password, confirmPassword) => {
+    try{
     setIsLoading(true)
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Basic validation
+      // Basic validation
     if (!name || !email || !password) {
       setIsLoading(false)
       return { success: false, error: 'All fields are required' }
@@ -77,25 +80,44 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false)
       return { success: false, error: 'Password must be at least 6 characters' }
     }
+
+    //  API call 
+   const res= await axios.post(`${API_URL}/signup`, {
+      name,
+      email,
+      password,
+      confirmPassword
+    });
+       
+    const {user, token}=res.data;
     
-    // Mock user creation
-    const newUser = {
-      id: 'user-' + Date.now(),
-      name: name,
-      email: email,
-      avatar: '',
-      joinedDate: new Date().toISOString()
+    setUser(user)
+    localStorage.setItem('tripMemoryUser', JSON.stringify(user))
+    localStorage.setItem('token', token)
+    
+    axios.defaults.headers.common={'Authorization':`Bearer ${token}`}
+
+    return {
+       success: true 
+
     }
-    
-    setUser(newUser)
-    localStorage.setItem('tripMemoryUser', JSON.stringify(newUser))
-    setIsLoading(false)
-    return { success: true }
+
+
+  }  catch(error){
+      return { 
+        success:false,
+        error: error.response?.data?.message || 'Signup failed' 
+      }
+    } finally {
+      setIsLoading(false)
+    }    
   }
 
   const logout = () => {
     setUser(null)
     localStorage.removeItem('tripMemoryUser')
+    localStorage.removeItem('token')
+    delete axios.defaults.headers.common['Authorization']
   }
 
   const value = {
