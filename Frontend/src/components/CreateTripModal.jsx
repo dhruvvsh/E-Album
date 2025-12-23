@@ -9,13 +9,12 @@ import { Switch } from './ui/switch'
 
 export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
   const [formData, setFormData] = useState({
-    name: '',
+    tripname: '',
     description: '',
     coverPhoto: '',
     startDate: '',
     endDate: '',
-    isPrivate: false,
-    participants: []
+    isPrivate: false
   })
 
   const handleSubmit = (e) => {
@@ -33,13 +32,12 @@ export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
     ]
 
     onCreateTrip({
-      name: formData.name,
+      tripname: formData.name,
       description: formData.description,
       coverPhoto: formData.coverPhoto || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
       startDate: formData.startDate,
       endDate: formData.endDate || formData.startDate,
       isPrivate: formData.isPrivate,
-      participants: mockParticipants
     })
 
     // Reset form

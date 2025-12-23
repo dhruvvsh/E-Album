@@ -82,7 +82,7 @@ export function Header({ onSearch, searchQuery }) {
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user?.avatar} alt={user?.name} />
                     <AvatarFallback>
-                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      {user?.name?.charAt(0)?.toUpperCase() || 'G'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
