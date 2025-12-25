@@ -24,6 +24,17 @@ export const createMemory = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
+//GET ALL MEMORIES
+export const getMemories = async (req, res) => {
+  try {
+    const memories = await Memory.find()
+      .populate("author", "name email")
+      .populate("comments.user", "name email");
+    res.json(memories);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
 // GET MEMORIES BY TRIP ID
 export const getMemoriesByTrip = async (req, res) => {
   try {

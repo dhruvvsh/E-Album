@@ -8,11 +8,11 @@ import {
 } from "../controllers/memoryController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
-const router = express.Router();
+const memoryrouter = express.Router();
 // Memory routes
-router.post("/", protect, createMemory);
-router.get("/trip/:tripId", protect, getMemories);
-router.get("/:id", protect, getMemoryById);
-router.put("/:id", protect, updateMemory);
-router.delete("/:id", protect, deleteMemory);
-export default router;
+memoryrouter.post("/", protect, createMemory);
+memoryrouter.get("/", protect, getMemories);
+memoryrouter.get("/:id", protect, getMemoryById);
+memoryrouter.put("/:id", protect, updateMemory);
+memoryrouter.delete("/:id", protect, deleteMemory);
+export default memoryrouter;
