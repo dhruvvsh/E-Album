@@ -1,4 +1,5 @@
  import { createContext, useContext, useState, useEffect } from 'react'
+ import axios from 'axios';
 
 const AuthContext = createContext()
 
@@ -9,20 +10,22 @@ export const useAuth = () => {
   }
   return context
 }
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001'
+  console.log("API URL:", API_URL);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const[isAuthenticated,setIsAuthenticated]=useState(false);
 
   // Check for stored user on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('tripMemoryUser')
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('Token')
     if (storedUser && token) {
       try {
         setUser(JSON.parse(storedUser))
-        axios.defaults.headers.common={'Authorization':`Bearer ${token}`}
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } catch (error) {
         console.error('Error parsing stored user:', error)
         localStorage.removeItem('tripMemoryUser')
@@ -36,7 +39,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
 
-      const res = await axios.post(`${API_URL}/user/login`, {
+      const res = await axios.post(`${API_URL}/users/login`, {
         email,
         password,
       });
@@ -45,7 +48,7 @@ export const AuthProvider = ({ children }) => {
 
       setUser(user);
       localStorage.setItem("tripMemoryUser", JSON.stringify(user));
-      localStorage.setItem("tripMemoryToken", token);
+      localStorage.setItem("Token", token);
 
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
@@ -57,23 +60,19 @@ export const AuthProvider = ({ children }) => {
       };
     } finally {
       setIsLoading(false);
+      setIsAuthenticated(true);
     }
   }
 
   // Signup function
-  const signup = async (name, email, password, confirmPassword) => {
+  const signup = async (username, email, password) => {
     try{
     setIsLoading(true)
     
       // Basic validation
-    if (!name || !email || !password) {
+    if (!username || !email || !password) {
       setIsLoading(false)
       return { success: false, error: 'All fields are required' }
-    }
-    
-    if (password !== confirmPassword) {
-      setIsLoading(false)
-      return { success: false, error: 'Passwords do not match' }
     }
     
     if (password.length < 6) {
@@ -82,20 +81,19 @@ export const AuthProvider = ({ children }) => {
     }
 
     //  API call 
-   const res= await axios.post(`${API_URL}/signup`, {
-      name,
+   const res= await axios.post(`${API_URL}/users/register`, {
+      username,
       email,
       password,
-      confirmPassword
     });
        
     const {user, token}=res.data;
     
     setUser(user)
     localStorage.setItem('tripMemoryUser', JSON.stringify(user))
-    localStorage.setItem('token', token)
+    localStorage.setItem('Token', token)
     
-    axios.defaults.headers.common={'Authorization':`Bearer ${token}`}
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
     return {
        success: true 
@@ -110,13 +108,14 @@ export const AuthProvider = ({ children }) => {
       }
     } finally {
       setIsLoading(false)
+      setIsAuthenticated(true)
     }    
   }
 
   const logout = () => {
     setUser(null)
     localStorage.removeItem('tripMemoryUser')
-    localStorage.removeItem('token')
+    localStorage.removeItem('Token')
     delete axios.defaults.headers.common['Authorization']
   }
 
@@ -126,7 +125,7 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated
   }
 
   return (

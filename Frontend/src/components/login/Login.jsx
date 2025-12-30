@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { use, useState } from 'react'
 import { Button } from '../ui/button.jsx'
 import { Input } from '../ui/input.jsx'
 import { Label } from '../ui/label.jsx'
@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { useAuth } from '../auth/AuthContext.jsx'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 
+
 export const Login = ({ onSwitchToSignup }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const { login, isLoading } = useAuth( )
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()

@@ -1,4 +1,4 @@
-import Memory from "../models/memoriesModel";
+import Memory from "../models/memoriesModel.js";
 import Trip from "../models/tripModel.js";
 
 // CREATE MEMORY
@@ -82,6 +82,26 @@ export const addComment = async (req, res) => {
     memory.comments.push(newComment);
     await memory.save();
     res.status(201).json({ message: "Comment added" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+//update memory
+export const updateMemory = async (req, res) => {
+  try {
+    const memory = await Memory.findById(req.params.id);
+    if (!memory) return res.status(404).json({ message: "Memory not found" });
+    // Only author can update
+    if (memory.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    const { image, description, location } = req.body;
+    if (image) memory.image = image;
+    if (description) memory.description = description;
+    if (location) memory.location = location;
+    const updatedMemory = await memory.save();
+    res.json(updatedMemory);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }

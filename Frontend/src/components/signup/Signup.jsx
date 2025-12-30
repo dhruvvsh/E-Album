@@ -8,7 +8,7 @@ import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 
 export const Signup = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -24,14 +24,14 @@ export const Signup = ({ onSwitchToLogin }) => {
       [e.target.name]: e.target.value
     }))
   }
-
+ console.log("formdata",formData);
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     
-    const { name, email, password, confirmPassword } = formData
+    const { username, email, password, confirmPassword } = formData
     
-    if (!name || !email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       setError('Please fill in all fields')
       return
     }
@@ -46,7 +46,7 @@ export const Signup = ({ onSwitchToLogin }) => {
       return
     }
 
-    const result = await signup(name, email, password, confirmPassword)
+    const result = await signup(username, email, password)
     if (!result.success) {
       setError(result.error)
     }
@@ -69,15 +69,15 @@ export const Signup = ({ onSwitchToLogin }) => {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="username">Full Name</Label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="name"
-                name="name"
+                id="username"
+                name="username"
                 type="text"
                 placeholder="Enter your full name"
-                value={formData.name}
+                value={formData.username}
                 onChange={handleChange}
                 className="pl-10"
                 disabled={isLoading}

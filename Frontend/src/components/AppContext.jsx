@@ -14,20 +14,7 @@ export const useAppContext = () => {
   return context
 }
 
-// Sample users
-const sampleUsers = [
-  { id: '1', name: 'Alex Chen', email: 'alex@example.com', avatar: '' },
-  { id: '2', name: 'Sarah Johnson', email: 'sarah@example.com', avatar: '' },
-  { id: '3', name: 'Mike Wilson', email: 'mike@example.com', avatar: '' },
-  { id: '4', name: 'Emma Davis', email: 'emma@example.com', avatar: '' }
-]
 
-// Sample trips with memories
-const createSampleTrips = (currentUser) => {
-  if (!currentUser) return []
-  
-  return 
-}
 
 const fetchTrips = async()=>{
   try {
@@ -38,6 +25,54 @@ const fetchTrips = async()=>{
   }
 }
 
+const fetchMemories = async(tripId)=>{
+  try {
+    const res = await axios.get(`${API_URL}/memories`); 
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching memories for trip:', error);
+    return [];
+  }
+}
+
+const normalizeMemory = (memory, currentUserId) => ({
+  id: memory._id,
+  tripId: memory.tripId,
+  image: memory.image,
+  description: memory.description,
+  location: memory.location,
+  author: memory.author,
+  timestamp: memory.createdAt,
+
+  likes: memory.likes.length,
+  isLiked: memory.likes.includes(currentUserId),
+
+  comments: memory.comments || []
+})
+
+const mergeTripsWithMemories = (trips, memories, userId) => {
+  const memoryMap = {}
+
+  memories.forEach(memory => {
+    const tripId = memory.tripId
+    if (!memoryMap[tripId]) memoryMap[tripId] = []
+    memoryMap[tripId].push(normalizeMemory(memory, userId))
+  })
+
+  return trips.map(trip => ({
+    id: trip._id,
+    name: trip.tripName,
+    description: trip.description,
+    coverPhoto: trip.coverPhoto,
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    isPrivate: trip.isPrivate,
+    createdBy: trip.createdBy,
+    participants: trip.participants,
+    memories: memoryMap[trip._id] || []
+  }))
+}
+
 export const AppProvider = ({ children }) => {
   const { user, isLoading } = useAuth()
   
@@ -46,25 +81,36 @@ export const AppProvider = ({ children }) => {
   const [selectedMemory, setSelectedMemory] = useState(null)
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false)
   const [trips, setTrips] = useState([])
-  const [tripsInitialized, setTripsInitialized] = useState(false)
-  
+
   // Initialize trips when user is available
   useEffect(() => {
-    if (user && !isLoading && !tripsInitialized) {
-      fetchTrips()
-    }
+    if (!user || isLoading) return
+      
+      const loadData = async()=>{
+        try {
+          const[tripsData, memoriesData] = await Promise.all([
+          fetchTrips(),
+          fetchMemories()
+        ])
+        const mergedData = mergeTripsWithMemories(tripsData, memoriesData, user._id)
+        setTrips(mergedData)
+        } catch (error) {
+          console.error('Error loading data:', error);
+        }
+        
+      } 
+    loadData()
   }, [user, isLoading])
 
   // Get all memories from all trips, sorted by timestamp
-  const allMemories = useMemo(() => {
-    if (!trips || trips.length === 0) return []
-    const memories = trips.flatMap(trip => trip.memories || [])
-    return memories.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-  }, [trips])
+  const allMemories = useMemo(()=>{
+    if(!trips.length) return []
+    return trips.flatMap(trip =>trip.memories)
+      .sort((a,b)=> new Date(b.timestamp)- new Date(a.timestamp))
+  })
 
   // Filter memories based on search query
   const filteredMemories = useMemo(() => {
-    if (!allMemories || allMemories.length === 0) return []
     if (!searchQuery) return allMemories
     
     const query = searchQuery.toLowerCase()
@@ -90,7 +136,7 @@ export const AppProvider = ({ children }) => {
     try {
       const res= await axios.post(`${API_URL}/trips`,tripData);
       const newTrip=res.data;
-   setTrips(prevTrips=>[newTrip,...prevTrips])
+   setTrips(prevTrips=>[{...newTrip,id:newTrip._id,memories:[]},...prevTrips])
     } catch (error) {
       console.error('Error creating trip:', error);
     }
@@ -126,7 +172,7 @@ export const AppProvider = ({ children }) => {
     }
   }
 
-  // Convert Memory to Photo format for the modal
+  // Normalised selected photo for PhotoModal 
   const selectedPhoto = selectedMemory ? {
     id: selectedMemory.id,
     url: selectedMemory.image,
@@ -140,9 +186,6 @@ export const AppProvider = ({ children }) => {
     tags: selectedMemory.location ? [selectedMemory.location] : []
   } : null
 
-//  const currentMemoryIndex = selectedMemory 
-//     ? allMemories.findIndex(m => m.id === selectedMemory.id)
-//     : 0
 
   const value = {
     searchQuery,
@@ -154,7 +197,6 @@ export const AppProvider = ({ children }) => {
     isCreateTripModalOpen,
     setIsCreateTripModalOpen,
     selectedMemory,
-    // currentMemoryIndex,
     setSelectedMemory,
     isMemoryModalOpen,
     setIsMemoryModalOpen,
