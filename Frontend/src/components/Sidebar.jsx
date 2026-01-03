@@ -3,8 +3,13 @@ import { NavLink } from 'react-router-dom'
 import { Button } from './ui/button.jsx'
 import { ScrollArea } from './ui/scroll-area.jsx'
 import { Separator } from './ui/separator.jsx'
+import { useAppContext } from './AppContext.jsx'
 
 export function Sidebar({ onCreateTrip, onCreateMemory }) {
+
+   const { filteredTrips } = useAppContext()
+    const trips = filteredTrips || []
+
   const navItems = [
     // { id: 'posts', name: 'Recent Posts', icon: <Home className="h-5 w-5" />, path: '/' },
     { id: 'trips', name: 'My Trips', icon: <Camera className="h-5 w-5" />, path: '/trips' },
@@ -26,14 +31,14 @@ export function Sidebar({ onCreateTrip, onCreateMemory }) {
               <Plus className="h-4 w-4 mr-2" />
               Create Trip
             </Button>
-            <Button 
+            {/* <Button 
               onClick={onCreateMemory}
               className="w-full justify-start"
               variant="outline"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Memory
-            </Button>
+            </Button> */}
           </div>
 
           <Separator className="my-4" />
@@ -70,15 +75,15 @@ export function Sidebar({ onCreateTrip, onCreateMemory }) {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Trips:</span>
-                <span>4</span>
+                <span>{trips?.length || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Memories:</span>
-                <span>127</span>
+                <span>{trips?.memories?.length || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Friends:</span>
-                <span>23</span>
+                <span>{trips?.participants?.length || 0}</span>
               </div>
             </div>
           </div>

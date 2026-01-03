@@ -25,14 +25,14 @@ export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
     }
 
     // Mock participants for demo
-    const mockParticipants = [
-      { id: '1', name: 'You', email: 'you@example.com', avatar: '' },
-      { id: '2', name: 'Alex Chen', email: 'alex@example.com', avatar: '' },
-      { id: '3', name: 'Sarah Johnson', email: 'sarah@example.com', avatar: '' }
-    ]
+    // const mockParticipants = [
+    //   { id: '1', name: 'You', email: 'you@example.com', avatar: '' },
+    //   { id: '2', name: 'Alex Chen', email: 'alex@example.com', avatar: '' },
+    //   { id: '3', name: 'Sarah Johnson', email: 'sarah@example.com', avatar: '' }
+    // ]
 
     onCreateTrip({
-      tripname: formData.name,
+      tripName: formData.name,
       description: formData.description,
       coverPhoto: formData.coverPhoto || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
       startDate: formData.startDate,

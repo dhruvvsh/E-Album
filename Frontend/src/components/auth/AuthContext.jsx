@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
     if (storedUser && token) {
       try {
         setUser(JSON.parse(storedUser))
+        setIsAuthenticated(true);
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } catch (error) {
         console.error('Error parsing stored user:', error)
@@ -49,18 +50,18 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       localStorage.setItem("tripMemoryUser", JSON.stringify(user));
       localStorage.setItem("Token", token);
-
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      setIsAuthenticated(true);
 
       return { success: true };
     } catch (error) {
+      setIsAuthenticated(false);
       return {
         success: false,
         error: error.response?.data?.message || "Login failed",
       };
     } finally {
       setIsLoading(false);
-      setIsAuthenticated(true);
     }
   }
 
@@ -92,8 +93,8 @@ export const AuthProvider = ({ children }) => {
     setUser(user)
     localStorage.setItem('tripMemoryUser', JSON.stringify(user))
     localStorage.setItem('Token', token)
-    
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    setIsAuthenticated(true);
 
     return {
        success: true 
@@ -102,18 +103,19 @@ export const AuthProvider = ({ children }) => {
 
 
   }  catch(error){
+    setIsAuthenticated(false);
       return { 
         success:false,
         error: error.response?.data?.message || 'Signup failed' 
       }
     } finally {
       setIsLoading(false)
-      setIsAuthenticated(true)
     }    
   }
 
   const logout = () => {
     setUser(null)
+    setIsAuthenticated(false);
     localStorage.removeItem('tripMemoryUser')
     localStorage.removeItem('Token')
     delete axios.defaults.headers.common['Authorization']

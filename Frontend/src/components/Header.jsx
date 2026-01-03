@@ -80,9 +80,9 @@ export function Header({ onSearch, searchQuery }) {
               <DropdownMenuTrigger >
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarImage src={user?.avatar} alt={user?.username} />
                     <AvatarFallback>
-                      {user?.name?.charAt(0)?.toUpperCase() || 'G'}
+                      {user?.username?.charAt(0)?.toUpperCase() || 'G'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>

@@ -67,10 +67,10 @@ export function TripCard({ trip, onClick }) {
           {/* Participant Avatars */}
           <div className="flex -space-x-2">
             {trip.participants.slice(0, 3).map((participant) => (
-              <Avatar key={participant.id} className="h-6 w-6 border-2 border-background">
+              <Avatar key={participant._id} className="h-6 w-6 border-2 border-background">
                 <AvatarImage src={participant.avatar} alt={participant.name} />
                 <AvatarFallback className="text-xs">
-                  {participant.name.charAt(0).toUpperCase()}
+                  {participant.email.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             ))}

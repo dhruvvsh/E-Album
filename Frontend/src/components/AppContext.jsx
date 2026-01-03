@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useMemo, useEffect } from 'react'
 import { useAuth } from './auth/AuthContext.jsx'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001'
 
 const AppContext = createContext(null)
 
@@ -19,7 +19,7 @@ export const useAppContext = () => {
 const fetchTrips = async()=>{
   try {
     const res = await axios.get(`${API_URL}/trips`)
-    setTrips(res.data);
+    return res.data;
   } catch (error) {
     console.error('Error fetching trips:', error);
   }

@@ -104,7 +104,7 @@ export function TripDetailView() {
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={participant.avatar} alt={participant.name} />
                   <AvatarFallback>
-                    {participant.name.charAt(0).toUpperCase()}
+                    {participant.email.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-sm">{participant.name}</span>
