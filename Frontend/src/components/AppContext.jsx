@@ -39,16 +39,15 @@ const normalizeMemory = (memory, currentUserId) => ({
   id: memory._id,
   tripId: memory.tripId,
   image: memory.image,
-  description: memory.description,
+  description: memory.description, // For MemoryGroupCard
+  caption: memory.caption || memory.description, // For carousel
   location: memory.location,
   author: memory.author,
   timestamp: memory.createdAt,
-
-  likes: memory.likes.length,
-  isLiked: memory.likes.includes(currentUserId),
-
-  comments: memory.comments || []
+  isFavorite: memory.isFavorite || [],
+  isFavoritedByUser: memory.isFavorite?.includes(currentUserId) || false,
 })
+
 
 const mergeTripsWithMemories = (trips, memories, userId) => {
   const memoryMap = {}
@@ -108,6 +107,14 @@ export const AppProvider = ({ children }) => {
     return trips.flatMap(trip =>trip.memories)
       .sort((a,b)=> new Date(b.timestamp)- new Date(a.timestamp))
   })
+  // Get favorite memories
+    const favoriteMemories = useMemo(() => {
+      if (!trips.length || !user) return []
+      return trips
+        .flatMap((trip) => trip.memories)
+        .filter((memory) => memory.isFavoritedByUser)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    }, [trips, user])
 
   // Filter memories based on search query
   const filteredMemories = useMemo(() => {
@@ -143,32 +150,53 @@ export const AppProvider = ({ children }) => {
    }
   
 
-  const handleLike = (memoryId) => {
-    setTrips(prevTrips => 
-      prevTrips.map(trip => ({
-        ...trip,
-        memories: trip.memories.map(memory => 
-          memory.id === memoryId 
-            ? { 
-                ...memory, 
-                isLiked: !memory.isLiked, 
-                likes: memory.isLiked ? memory.likes - 1 : memory.likes + 1 
-              }
-            : memory
-        )
-      }))
-    )
-  }
+   // TOGGLE FAVORITE
+   const handleToggleFavorite = async (memoryId) => {
+     try {
+       console.log('⭐ FAVORITE TOGGLE:', memoryId)
+       const res = await axios.put(`${API_URL}/memories/${memoryId}/favorite`)
+ 
+       setTrips((prevTrips) =>
+         prevTrips.map((trip) => ({
+           ...trip,
+           memories: trip.memories.map((memory) =>
+             memory.id === memoryId
+               ? {
+                   ...memory,
+                   isFavoritedByUser: res.data.isFavorited,
+                   isFavorite: res.data.memory.isFavorite,
+                 }
+               : memory
+           ),
+         }))
+       )
+ 
+       console.log('✅ Favorite toggled')
+     } catch (error) {
+       console.error('Error toggling favorite:', error)
+     }
+   }
 
   const handleMemoryClick = (memory) => {
     setSelectedMemory(memory)
     setIsMemoryModalOpen(true)
   }
 
-  const handleComment = (memoryId) => {
-    const memory = allMemories.find(m => m.id === memoryId)
-    if (memory) {
-      handleMemoryClick(memory)
+  const handleDeleteMemory = async (memoryId) => {
+    try {
+      console.log('🗑️ DELETE MEMORY:', memoryId)
+      await axios.delete(`${API_URL}/memories/${memoryId}`)
+
+      setTrips((prevTrips) =>
+        prevTrips.map((trip) => ({
+          ...trip,
+          memories: trip.memories.filter((m) => m.id !== memoryId),
+        }))
+      )
+
+      console.log('✅ Memory deleted')
+    } catch (error) {
+      console.error('Error deleting memory:', error)
     }
   }
 
@@ -197,14 +225,15 @@ export const AppProvider = ({ children }) => {
     isCreateTripModalOpen,
     setIsCreateTripModalOpen,
     selectedMemory,
+    favoriteMemories,
     setSelectedMemory,
     isMemoryModalOpen,
     setIsMemoryModalOpen,
     selectedPhoto,
     handleCreateTrip,
-    handleLike,
+    handleToggleFavorite,
     handleMemoryClick,
-    handleComment
+    handleDeleteMemory
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

@@ -30,7 +30,7 @@ export function MemoryCard({
             <Avatar className="h-10 w-10">
               <AvatarImage src={memory.author.avatar} alt={memory.author.name} />
               <AvatarFallback>
-                {memory.author.name.charAt(0).toUpperCase()}
+                {memory.author.email.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>

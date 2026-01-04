@@ -103,12 +103,12 @@ const Layout = () => {
             onCreateTrip={handleCreateTrip}
           />
     
-          <PhotoModal
+          {/* <PhotoModal
             photo={selectedPhoto}
             isOpen={isMemoryModalOpen} 
             onClose={() => setIsMemoryModalOpen(false)}
             onLike={handleLike}
-          />
+          /> */}
          {/* <ImageCarousel
          images={selectedPhoto}
          memories={allMemories}

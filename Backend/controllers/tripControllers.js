@@ -6,7 +6,6 @@ export const createTrip = async (req, res) => {
   try {
     const { tripName, description, coverPhoto, startDate, endDate, isPrivate } =
       req.body;
-    debugger;
     const newTrip = new Trip({
       tripName,
       description,

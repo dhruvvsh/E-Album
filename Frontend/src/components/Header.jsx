@@ -2,41 +2,37 @@ import { Search, Bell, MessageCircle, SunMoonIcon } from 'lucide-react'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import {useEffect,useState} from 'react'
+import { useEffect, useState } from 'react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
 import { LogOut } from 'lucide-react'
-import { useAuth } from './auth/AuthContext'  
-
-
+import { useAuth } from './auth/AuthContext'
 
 export function Header({ onSearch, searchQuery }) {
+  const { user, logout } = useAuth()
+  const [darkMode, setDarkMode] = useState(false)
 
-  const{user , logout}=useAuth();
-
-  const[darkMode, setDarkMode]=useState(false);
-
- useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme")
     if (savedTheme === "dark") {
-      document.body.classList.add("dark");
-      setDarkMode(true);
+      document.body.classList.add("dark")
+      setDarkMode(true)
     } else {
-      document.body.classList.remove("dark");
-      setDarkMode(false);
+      document.body.classList.remove("dark")
+      setDarkMode(false)
     }
-  }, []);
+  }, [])
 
-   const toggleTheme = () => {
+  const toggleTheme = () => {
     if (darkMode) {
-      document.body.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setDarkMode(false);
+      document.body.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+      setDarkMode(false)
     } else {
-      document.body.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setDarkMode(true);
+      document.body.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+      setDarkMode(true)
     }
-  };
+  }
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50">
@@ -66,36 +62,38 @@ export function Header({ onSearch, searchQuery }) {
 
           {/* User Actions */}
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="icon" className="relative"
-            onClick={toggleTheme}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              onClick={toggleTheme}
+            >
               <SunMoonIcon className="h-5 w-5" />
             </Button>
 
-            {/* <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <div className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></div>
-            </Button> */}
-
-             <DropdownMenu>
-              <DropdownMenuTrigger >
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            {/* Dropdown Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                {/* ✅ FIX: Use plain button element, not Button component */}
+                <button className="relative h-8 w-8 rounded-full hover:bg-accent transition-colors outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user?.avatar} alt={user?.username} />
                     <AvatarFallback>
                       {user?.username?.charAt(0)?.toUpperCase() || 'G'}
                     </AvatarFallback>
                   </Avatar>
-                </Button>
+                </button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex justify-center items-center h-40 border">
                   <p>{user?.name}</p>
-                  {/* <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p> */}
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem 
+                  onClick={logout} 
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out
                 </DropdownMenuItem>
