@@ -9,8 +9,9 @@ import { useAppContext } from './AppContext.jsx'
 export function TripDetailView() {
   const { tripId } = useParams()
   const navigate = useNavigate()
-  const { trips } = useAppContext()
+  const { trips, setIsMemoryModalOpen, isMemoryModalOpen, handleAddMemories } = useAppContext()
   
+
   const trip = trips?.find(t => t.id === tripId)
   
   if (!trip) {
@@ -101,7 +102,12 @@ const memoryGroups = groupMemoriesByUser(trip.memories || [])
         {/* Memory Groups */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold">Memories ({trip.memories?.length || 0})</h3>
-          <Button variant="outline"><Plus className="h-4 w-4 mr-2" /> Add Memory</Button>
+          <Button variant="outline" 
+            onClick={() => setIsMemoryModalOpen(true)}
+            isOpen={isMemoryModalOpen}
+            onClose={() => setIsMemoryModalOpen(false)}
+            onAddMemories={handleAddMemories}>
+          <Plus className="h-4 w-4 mr-2" /> Add Memory</Button>
         </div>
 
         {memoryGroups.length === 0 ? (

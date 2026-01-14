@@ -1,200 +1,213 @@
-import { useState, useEffect, useCallback } from 'react'
-import { ChevronLeft, ChevronRight, Star, X } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { ImageWithFallback } from './figma/ImageWithFallback'
-import { Button } from './ui/button'
-import { useAppContext } from './AppContext.jsx'
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, Heart, MessageCircle, Share2 } from 'lucide-react';
 
-export function ImageCarousel({ 
-  images, 
-  tripMemories = [], 
-  initialIndex = 0, 
-  onClose 
-}) {
-  const { handleToggleFavorite } = useAppContext()
-  const [currentIndex, setCurrentIndex] = useState(initialIndex)
-  
-  const currentMemory = tripMemories[currentIndex]
+export function ImageCarousel() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  const goToPrevious = useCallback(() => {
-    setCurrentIndex((prev) => prev === 0 ? images.length - 1 : prev - 1)
-  }, [images.length])
+  const posts = [
+    {
+      id: 1,
+      author: 'Dan Walker',
+      time: '17 minutes ago',
+      avatar: 'https://i.pravatar.cc/150?img=12',
+      image:
+        'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=600&fit=crop',
+      likes: 64,
+      likedBy: 'Elise Walker',
+    },
+    {
+      id: 2,
+      author: 'Lana Henrikssen',
+      time: '1 day ago',
+      avatar: 'https://i.pravatar.cc/150?img=5',
+      image:
+        'https://images.unsplash.com/photo-1682687221038-404cb8830901?w=800&h=600&fit=crop',
+      likes: 1800,
+      likedBy: 'Jenna Davis',
+    },
+    {
+      id: 3,
+      author: 'Stella Bergmann',
+      time: '45 minutes ago',
+      avatar: 'https://i.pravatar.cc/150?img=9',
+      image:
+        'https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=800&h=600&fit=crop',
+      likes: 299,
+      likedBy: 'Bobby Brown',
+    },
+    {
+      id: 4,
+      author: 'Jenna Davis',
+      time: '3 hours ago',
+      avatar: 'https://i.pravatar.cc/150?img=1',
+      image:
+        'https://images.unsplash.com/photo-1682687218147-9806132dc697?w=800&h=600&fit=crop',
+      likes: 687,
+      likedBy: 'David Kim',
+    },
+    {
+      id: 5,
+      author: 'Elise Walker',
+      time: '1 hour ago',
+      avatar: 'https://i.pravatar.cc/150?img=45',
+      image:
+        'https://images.unsplash.com/photo-1682687220199-d0124f48f95b?w=800&h=600&fit=crop',
+      likes: 49,
+      likedBy: 'Dan Walker',
+    },
+    {
+      id: 6,
+      author: 'Milly Augustine',
+      time: '6 hours ago',
+      avatar: 'https://i.pravatar.cc/150?img=47',
+      image:
+        'https://images.unsplash.com/photo-1682687221073-5a3a4c1825f7?w=800&h=600&fit=crop',
+      likes: 341,
+      likedBy: 'Gaelle Morris',
+    },
+  ];
 
-  const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => prev === images.length - 1 ? 0 : prev + 1)
-  }, [images.length])
+  const nextSlide = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setCurrentIndex((prev) => (prev + 1) % posts.length);
+    setTimeout(() => setIsAnimating(false), 600);
+  };
 
-  const toggleFavorite = useCallback(() => {
-    if (currentMemory) {
-      console.log('⭐ FAVORITE TOGGLE:', currentMemory.id)
-      handleToggleFavorite(currentMemory.id)
-    }
-  }, [currentMemory, handleToggleFavorite])
+  const prevSlide = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setCurrentIndex((prev) => (prev - 1 + posts.length) % posts.length);
+    setTimeout(() => setIsAnimating(false), 600);
+  };
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (e.key === 'ArrowLeft') goToPrevious()
-      if (e.key === 'ArrowRight') goToNext()
-      if (e.key === 'Escape') onClose?.()
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [goToPrevious, goToNext, onClose])
+  const goToSlide = (index) => {
+    if (isAnimating || index === currentIndex) return;
+    setIsAnimating(true);
+    setCurrentIndex(index);
+    setTimeout(() => setIsAnimating(false), 600);
+  };
 
-  const getPrevIndex = () => currentIndex === 0 ? images.length - 1 : currentIndex - 1
-  const getNextIndex = () => currentIndex === images.length - 1 ? 0 : currentIndex + 1
+  const currentPost = posts[currentIndex];
 
   return (
-    <>
-      {/* BACKDROP */}
-      <div 
-        className="fixed inset-0 z-[9998] bg-black/95 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
-      {/* CAROUSEL CONTENT */}
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 overflow-hidden">
-        {/* CLOSE BUTTON */}
-        <Button
-          onClick={onClose}
-          className="absolute top-6 right-6 z-[10000] bg-white/30 hover:bg-white/50 text-white h-14 w-14 rounded-2xl backdrop-blur-sm border-white/20"
-        >
-          <X className="h-7 w-7" />
-        </Button>
-
-        {/* MAIN CAROUSEL SECTION */}
-        <div className="relative w-full h-[85vh] flex items-center justify-center gap-8">
-          
-          {/* LEFT SIDE IMAGE - SMALL */}
-          <motion.div
-            className="hidden xl:block absolute left-0 w-32 h-48 flex-shrink-0"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 0.3, x: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <ImageWithFallback
-              src={images[getPrevIndex()]}
-              alt="Previous"
-              className="w-full h-full object-cover rounded-xl shadow-2xl"
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-5xl relative">
+        {/* Card */}
+        <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden lg:h-[600px] h-[550px] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center gap-3 p-4 border-b border-slate-200 bg-white">
+            <img
+              src={currentPost.avatar}
+              alt={currentPost.author}
+              className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover ring-2 ring-slate-200"
             />
-          </motion.div>
-
-          {/* MAIN IMAGE - CENTER - NO STRETCHING */}
-          <div className="relative flex-1 max-w-3xl h-full flex items-center justify-center">
-            <motion.div
-              key={`carousel-${currentIndex}`}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="w-full h-full flex items-center justify-center"
-            >
-              <ImageWithFallback
-                src={images[currentIndex]}
-                alt={`Image ${currentIndex + 1}`}
-                className="max-w-full max-h-full object-contain rounded-3xl shadow-2xl"
-              />
-            </motion.div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-slate-900 text-sm lg:text-base truncate">
+                {currentPost.author}
+              </h3>
+              <p className="text-xs lg:text-sm text-slate-500">
+                {currentPost.time}
+              </p>
+            </div>
           </div>
 
-          {/* RIGHT SIDE IMAGE - SMALL */}
-          <motion.div
-            className="hidden xl:block absolute right-0 w-32 h-48 flex-shrink-0"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 0.3, x: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <ImageWithFallback
-              src={images[getNextIndex()]}
-              alt="Next"
-              className="w-full h-full object-cover rounded-xl shadow-2xl"
+          {/* Image */}
+          <div className="flex-1 bg-slate-100 relative">
+            <img
+              src={currentPost.image}
+              alt="Post"
+              className={`w-full h-full object-cover transition-transform duration-700 ${
+                isAnimating ? 'scale-[1.02] opacity-90' : 'scale-100 opacity-100'
+              }`}
             />
-          </motion.div>
+          </div>
 
-          {/* NAVIGATION ARROWS */}
-          <button
-            onClick={goToPrevious}
-            className="absolute left-4 z-[10000] p-4 rounded-full bg-white/90 hover:bg-white shadow-2xl hover:scale-110 transition-all w-16 h-16 flex items-center justify-center"
-            aria-label="Previous"
-          >
-            <ChevronLeft className="w-8 h-8 text-gray-800" />
-          </button>
-          
-          <button
-            onClick={goToNext}
-            className="absolute right-4 z-[10000] p-4 rounded-full bg-white/90 hover:bg-white shadow-2xl hover:scale-110 transition-all w-16 h-16 flex items-center justify-center"
-            aria-label="Next"
-          >
-            <ChevronRight className="w-8 h-8 text-gray-800" />
-          </button>
-        </div>
+          {/* Footer */}
+          <div className="p-3 lg:p-4 border-t border-slate-200 bg-white">
+            <div className="flex items-center gap-3 lg:gap-4 mb-2 lg:mb-3">
+              <button className="flex items-center gap-1.5 lg:gap-2 text-slate-600 hover:text-red-500 transition-all duration-300 hover:scale-110">
+                <Heart className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span className="font-medium text-sm lg:text-base">
+                  {currentPost.likes}
+                </span>
+              </button>
+              <button className="flex items-center gap-1.5 lg:gap-2 text-slate-600 hover:text-blue-500 transition-all duration-300 hover:scale-110">
+                <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5" />
+              </button>
+              <button className="flex items-center gap-1.5 lg:gap-2 text-slate-600 hover:text-green-500 transition-all duration-300 hover:scale-110">
+                <Share2 className="w-4 h-4 lg:w-5 lg:h-5" />
+              </button>
+            </div>
 
-        {/* BOTTOM CONTROLS */}
-        <div className="flex flex-col items-center gap-6 w-full mt-8">
-          {/* INDICATOR DOTS */}
-          <div className="flex gap-2.5 bg-white/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-xl">
-            {images.map((_, index) => (
+            <div className="flex items-center gap-2">
+              <img
+                src={posts[(currentIndex + 1) % posts.length].avatar}
+                alt=""
+                className="w-5 h-5 lg:w-6 lg:h-6 rounded-full object-cover"
+              />
+              <p className="text-xs lg:text-sm text-slate-600 truncate">
+                Liked by <span className="font-semibold">{currentPost.likedBy}</span> and{' '}
+                <span className="font-semibold">{currentPost.likes - 1} others</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Arrows */}
+          <button
+            onClick={prevSlide}
+            disabled={isAnimating}
+            className="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white backdrop-blur-sm rounded-full p-2 lg:p-3 shadow-lg transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+          >
+            <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6 text-slate-700" />
+          </button>
+          <button
+            onClick={nextSlide}
+            disabled={isAnimating}
+            className="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white backdrop-blur-sm rounded-full p-2 lg:p-3 shadow-lg transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+          >
+            <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6 text-slate-700" />
+          </button>
+
+          {/* Dots */}
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {posts.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`rounded-full transition-all duration-300 ${
-                  index === currentIndex 
-                    ? 'bg-black w-10 h-3 shadow-lg' 
-                    : 'bg-gray-400 hover:bg-gray-600 w-3 h-3'
+                onClick={() => goToSlide(index)}
+                disabled={isAnimating}
+                className={`h-1.5 lg:h-2 rounded-full transition-all duration-500 disabled:cursor-not-allowed ${
+                  index === currentIndex
+                    ? 'w-6 lg:w-8 bg-white shadow-lg'
+                    : 'w-1.5 lg:w-2 bg-white/50 hover:bg-white/75'
                 }`}
               />
             ))}
           </div>
+        </div>
 
-          {/* MEMORY CAPTION + INFO */}
-          {currentMemory && (
-            <motion.div 
-              className="bg-white/95 backdrop-blur-sm px-8 py-6 rounded-3xl shadow-2xl max-w-2xl w-full"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              key={`info-${currentIndex}`}
+        {/* Thumbnails */}
+        <div className="mt-6 flex gap-3 overflow-x-auto pb-2 px-2">
+          {posts.map((post, index) => (
+            <button
+              key={post.id}
+              onClick={() => goToSlide(index)}
+              className={`flex-shrink-0 transition-all ${
+                index === currentIndex
+                  ? 'ring-4 ring-blue-500 scale-105'
+                  : 'ring-2 ring-slate-300 opacity-60 hover:opacity-100'
+              } rounded-lg overflow-hidden`}
             >
-              {/* HEADER - FAVORITE BUTTON */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex-1" />
-                <button
-                  onClick={toggleFavorite}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-all"
-                  title="Add to favorites"
-                >
-                  <Star 
-                    className={`w-6 h-6 transition-all ${
-                      currentMemory?.isFavoritedByUser 
-                        ? 'fill-yellow-400 text-yellow-400 scale-110' 
-                        : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* CAPTION - STORY/NARRATIVE (Italicized) */}
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 italic">
-                "{currentMemory.caption || currentMemory.description}"
-              </h3>
-
-              {/* METADATA */}
-              <div className="flex flex-col gap-2 text-sm text-gray-600 pt-4 border-t">
-                {currentMemory.location && (
-                  <span>📍 {currentMemory.location}</span>
-                )}
-                <span>📅 {new Date(currentMemory.timestamp).toLocaleDateString()}</span>
-                <span>📷 by {currentMemory.author?.name}</span>
-              </div>
-
-              {/* COUNTER */}
-              <div className="text-center mt-4 text-gray-500 text-sm">
-                {currentIndex + 1} of {images.length}
-              </div>
-            </motion.div>
-          )}
+              <img
+                src={post.image}
+                alt={post.author}
+                className="w-20 h-20 object-cover"
+              />
+            </button>
+          ))}
         </div>
       </div>
-    </>
-  )
+    </div>
+  );
 }

@@ -7,6 +7,7 @@ import { PhotoModal } from './PhotoModal'
 import { ImageCarousel } from './ImageCarousel.jsx'
 import  sampleTrips  from '../App'
 import { useAppContext } from './AppContext.jsx'
+import AddMemories from './AddMemories.jsx'
 
 
 const Layout = () => {
@@ -17,12 +18,14 @@ const Layout = () => {
     setIsCreateTripModalOpen,
     isMemoryModalOpen,
     setIsMemoryModalOpen,
+    handleAddMemories,
     selectedPhoto,
     allMemories,
     currentMemoryIndex,
     handleCreateTrip,
     handleLike
   } = useAppContext()
+  console.log(isMemoryModalOpen)
 //   const [searchQuery, setSearchQuery] = useState('')
 //   const [isCreateTripModalOpen, setIsCreateTripModalOpen] = useState(false)
 //   const [selectedMemory, setSelectedMemory] = useState(null)
@@ -89,7 +92,6 @@ const Layout = () => {
             //   currentView={currentView}
             //   onViewChange={setCurrentView}
               onCreateTrip={() => setIsCreateTripModalOpen(true)}
-              onCreateMemory={() => {/* TODO: Implement create memory */}}
             />
             
             <main className="flex-1 overflow-y-auto"> 
@@ -101,6 +103,11 @@ const Layout = () => {
             isOpen={isCreateTripModalOpen}
             onClose={() => setIsCreateTripModalOpen(false)}
             onCreateTrip={handleCreateTrip}
+          />
+          <AddMemories
+          isOpen={isMemoryModalOpen}
+          onClose={() => setIsMemoryModalOpen(false)}
+          onAddMemories={handleAddMemories}
           />
     
           {/* <PhotoModal

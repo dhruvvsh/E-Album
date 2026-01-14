@@ -177,9 +177,29 @@ export const AppProvider = ({ children }) => {
      }
    }
 
-  const handleMemoryClick = (memory) => {
-    setSelectedMemory(memory)
-    setIsMemoryModalOpen(true)
+  // const handleMemoryClick = (memory) => {
+  //   setSelectedMemory(memory)
+  //   setIsMemoryModalOpen(true)
+  // }
+  const handleAddMemories = async(newMemories) => {
+   try {
+    const res = await axios.post(`${API_URL}/memories`, newMemories)
+    const newMemory = res.data
+
+    setTrips((prevTrips) =>
+      prevTrips.map((trip) => {
+        if (trip.id === newMemory.tripId) {
+          return {
+            ...trip,
+            memories: [...trip.memories, newMemory],
+          }
+        }
+        return trip
+      })
+    )
+   } catch (error) {
+    console.error('Error adding memories:', error)
+   }
   }
 
   const handleDeleteMemory = async (memoryId) => {
@@ -229,10 +249,10 @@ export const AppProvider = ({ children }) => {
     setSelectedMemory,
     isMemoryModalOpen,
     setIsMemoryModalOpen,
+    handleAddMemories,
     selectedPhoto,
     handleCreateTrip,
     handleToggleFavorite,
-    handleMemoryClick,
     handleDeleteMemory
   }
 

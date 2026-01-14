@@ -1,11 +1,11 @@
-import { Home, Camera, User, Settings, Plus } from 'lucide-react'
+import { Home, Camera, User, Settings, Plus, Heart } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { Button } from './ui/button.jsx'
 import { ScrollArea } from './ui/scroll-area.jsx'
 import { Separator } from './ui/separator.jsx'
 import { useAppContext } from './AppContext.jsx'
 
-export function Sidebar({ onCreateTrip, onCreateMemory }) {
+export function Sidebar({ onCreateTrip }) {
 
    const { filteredTrips } = useAppContext()
     const trips = filteredTrips || []
@@ -15,6 +15,7 @@ export function Sidebar({ onCreateTrip, onCreateMemory }) {
     { id: 'trips', name: 'My Trips', icon: <Camera className="h-5 w-5" />, path: '/trips' },
     { id: 'profile', name: 'Profile', icon: <User className="h-5 w-5" />, path: '/profile' },
     { id: 'settings', name: 'Settings', icon: <Settings className="h-5 w-5" />, path: '/settings' },
+    { id: 'favorites',  name:'Favorites', icon:<Heart className="h-5 w-5" />, path:'/favorites' }
   ]
 
   return (
