@@ -103,7 +103,7 @@ export function MemoryGroupCard({ group, tripId }) {
             <ImageWithFallback
               src={firstMemory.image}
               alt={firstMemory.description}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
             />
             {group.memories.length > 1 && (
               <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2.5 py-1 rounded-full font-semibold">

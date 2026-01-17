@@ -25,7 +25,6 @@ const Layout = () => {
     handleCreateTrip,
     handleLike
   } = useAppContext()
-  console.log(isMemoryModalOpen)
 //   const [searchQuery, setSearchQuery] = useState('')
 //   const [isCreateTripModalOpen, setIsCreateTripModalOpen] = useState(false)
 //   const [selectedMemory, setSelectedMemory] = useState(null)

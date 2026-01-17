@@ -221,18 +221,18 @@ export const AppProvider = ({ children }) => {
   }
 
   // Normalised selected photo for PhotoModal 
-  const selectedPhoto = selectedMemory ? {
-    id: selectedMemory.id,
-    url: selectedMemory.image,
-    title: selectedMemory.description,
-    description: selectedMemory.description,
-    photographer: selectedMemory.author.name,
-    date: new Date(selectedMemory.timestamp).toLocaleDateString(),
-    likes: selectedMemory.likes,
-    isLiked: selectedMemory.isLiked,
-    category: 'memory',
-    tags: selectedMemory.location ? [selectedMemory.location] : []
-  } : null
+  // const selectedPhoto = selectedMemory ? {
+  //   id: selectedMemory.id,
+  //   url: selectedMemory.image,
+  //   title: selectedMemory.description,
+  //   description: selectedMemory.description,
+  //   photographer: selectedMemory.author.name,
+  //   date: new Date(selectedMemory.timestamp).toLocaleDateString(),
+  //   likes: selectedMemory.likes,
+  //   isLiked: selectedMemory.isLiked,
+  //   category: 'memory',
+  //   tags: selectedMemory.location ? [selectedMemory.location] : []
+  // } : null
 
 
   const value = {
@@ -250,7 +250,7 @@ export const AppProvider = ({ children }) => {
     isMemoryModalOpen,
     setIsMemoryModalOpen,
     handleAddMemories,
-    selectedPhoto,
+    // selectedPhoto,
     handleCreateTrip,
     handleToggleFavorite,
     handleDeleteMemory
