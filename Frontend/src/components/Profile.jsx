@@ -7,12 +7,15 @@ import { Input } from './ui/input.jsx'
 import { Label } from './ui/label.jsx'
 import { Separator } from './ui/separator.jsx'
 import { Camera, Mail, User as UserIcon } from 'lucide-react'
+import { useAppContext } from './AppContext.jsx'
 
 export default function Profile() {
   const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [name, setName] = useState(user?.name || '')
   const [email, setEmail] = useState(user?.email || '')
+  const {filteredTrips} = useAppContext()
+  const trips = filteredTrips || []
 
   const handleSave = () => {
     // TODO: Implement profile update
@@ -110,11 +113,11 @@ export default function Profile() {
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-semibold mb-1">3</div>
+              <div className="text-2xl font-semibold mb-1">{trips?.length || 0}</div>
               <div className="text-sm text-muted-foreground">Trips Created</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-semibold mb-1">8</div>
+              <div className="text-2xl font-semibold mb-1">{trips?.memories?.length || 0}</div>
               <div className="text-sm text-muted-foreground">Memories Shared</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">

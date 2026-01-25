@@ -13,6 +13,7 @@ import { useAuth } from './components/auth/AuthContext'
 import { AuthPage } from './components/auth/AuthPage'
 import Layout from './components/Layout.jsx'
 import { ImageCarouselView } from './components/ImageCarouselView'
+import { PhotoGrid } from './components/PhotoGrid.jsx'
 
 
 
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/trips/:tripId/:memorycardId" element={<ImageCarouselView />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/favorites" element={<PhotoGrid />} />
         </Route>
       )}
 
