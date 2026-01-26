@@ -26,7 +26,7 @@ export const createTrip = async (req, res) => {
 export const getTrips = async (req, res) => {
   try {
     const trips = await Trip.find({
-      $or: [{ isPrivate: false }, { participants: req.user._id }],
+      $and: [{ isPrivate: false }, { participants: req.user._id }],
     })
       .populate("createdBy", "name email")
       .populate("participants", "name email");
