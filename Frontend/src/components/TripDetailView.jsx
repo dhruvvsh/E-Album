@@ -3,17 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
 import { ImageWithFallback } from './figma/ImageWithFallback.jsx'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { MemoryGroupCard } from './MemoryGroupCard.jsx'  // ← NEW
+import { MemoryGroupCard } from './MemoryGroupCard.jsx'
 import { useAppContext } from './AppContext.jsx'
+import { useState } from 'react';
+import { AddFirstMemory } from './AddMemories.jsx'
+
 
 export function TripDetailView() {
   const { tripId } = useParams()
   const navigate = useNavigate()
-  const { trips, setIsMemoryModalOpen, isMemoryModalOpen, handleAddMemories } = useAppContext()
-  
+  const { trips } = useAppContext()
+
+  const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false)
 
   const trip = trips?.find(t => t.id === tripId)
-  
+
   if (!trip) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -32,27 +36,27 @@ export function TripDetailView() {
     return `${startDate} - ${endDate}`
   }
 
- const groupMemoriesByUser = (memories) => {
-  const groups = {}
-  memories.forEach(memory => {
-    const userId = memory.author?._id || memory.author?.id
-    if (!groups[userId]) {
-      groups[userId] = {
-        user: memory.author,
-        memories: []
+  const groupMemoriesByUser = (memories) => {
+    const groups = {}
+    memories.forEach(memory => {
+      const userId = memory.author?._id || memory.author?.id
+      if (!groups[userId]) {
+        groups[userId] = {
+          user: memory.author,
+          memories: []
+        }
       }
-    }
-    groups[userId].memories.push(memory)
-  })
-  
-  return Object.values(groups).map(group => ({
-    ...group,
-    count: group.memories.length,
-    memories: group.memories.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))  // Newest first
-  })).sort((a, b) => b.count - a.count)  // Most memories first
-}
+      groups[userId].memories.push(memory)
+    })
 
-const memoryGroups = groupMemoriesByUser(trip.memories || [])
+    return Object.values(groups).map(group => ({
+      ...group,
+      count: group.memories.length,
+      memories: group.memories.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))  // Newest first
+    })).sort((a, b) => b.count - a.count)  // Most memories first
+  }
+
+  const memoryGroups = groupMemoriesByUser(trip.memories || [])
 
   return (
     <div className="min-h-full">
@@ -62,10 +66,10 @@ const memoryGroups = groupMemoriesByUser(trip.memories || [])
           <ImageWithFallback src={trip.coverPhoto} alt={trip.name} className="w-full h-full object-cover" />
         </div>
         <div className="absolute inset-0 bg-black/40" />
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="absolute top-4 left-4 text-white hover:bg-white/20" 
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 left-4 text-white hover:bg-white/20"
           onClick={() => navigate('/')}
         >
           <ArrowLeft className="h-5 w-5" />
@@ -102,26 +106,31 @@ const memoryGroups = groupMemoriesByUser(trip.memories || [])
         {/* Memory Groups */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold">Memories ({trip.memories?.length || 0})</h3>
-          <Button variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setIsMemoryModalOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" /> Add Memory
+          </Button>
+
+          <AddFirstMemory
             isOpen={isMemoryModalOpen}
             onClose={() => setIsMemoryModalOpen(false)}
-            onAddMemories={handleAddMemories}>
-          <Plus className="h-4 w-4 mr-2" /> Add Memory</Button>
+          />
         </div>
 
         {memoryGroups.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground mb-4">No memories yet</div>
-            <Button variant="outline"><Plus className="h-4 w-4 mr-2" /> Add first memory</Button>
+            {/* <Button variant="outline"><Plus className="h-4 w-4 mr-2" /> Add first memory</Button> */}
           </div>
         ) : (
           <div className="space-y-4">
             {memoryGroups.map((group) => (
-             <MemoryGroupCard
-              key={group.user._id}
-              group={group}
-               tripId={tripId}
+              <MemoryGroupCard
+                key={group.user._id}
+                group={group}
+                tripId={tripId}
               />
             ))}
           </div>

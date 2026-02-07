@@ -1,9 +1,11 @@
 import { Star, MapPin, MoreVertical, Trash2 } from 'lucide-react'
 import { ImageWithFallback } from './figma/ImageWithFallback'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { Card, CardContent, CardHeader } from './ui/card'
+import { Card, CardContent, CardHeader, CardFooter } from './ui/card'
+import { Button } from './ui/button'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { AddMorePhotos } from './AddMemories.jsx'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,8 @@ export function MemoryGroupCard({ group, tripId }) {
   const { handleToggleFavorite, handleDeleteMemory } = useAppContext()
   const firstMemory = group.memories[0]
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
+
 
   const formatTimeAgo = (timestamp) => {
     const now = new Date()
@@ -44,7 +48,7 @@ export function MemoryGroupCard({ group, tripId }) {
 
   const handleDelete = () => {
     console.log('🗑️ DELETE clicked')
-    handleDeleteMemory(firstMemory.id)
+    handleDeleteMemory(firstMemory._id)
     setShowDeleteConfirm(false)
   }
 
@@ -52,7 +56,7 @@ export function MemoryGroupCard({ group, tripId }) {
     <>
       <Card
         className="w-full max-w-md overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
-        onClick={handleImageClick}
+
       >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -97,7 +101,8 @@ export function MemoryGroupCard({ group, tripId }) {
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="p-0"
+          onClick={handleImageClick}>
           {/* MAIN IMAGE - NO STRETCHING */}
           <div className="aspect-square overflow-hidden relative">
             <ImageWithFallback
@@ -113,32 +118,11 @@ export function MemoryGroupCard({ group, tripId }) {
           </div>
 
           {/* DESCRIPTION + METADATA */}
-          <div className="p-4 bg-gradient-to-t from-gray-50 to-white">
+          <div className="p-4 bg-gradient-to-t from-gray-400 to-white">
             {/* CAPTION/DESCRIPTION */}
             <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-2">
               "{firstMemory.description}"
             </p>
-
-            {/* FAVORITE BUTTON */}
-            <div className="flex items-center justify-between mb-2">
-              <button
-                onClick={handleToggleFav}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
-                title="Add to favorites"
-              >
-                <Star
-                  className={`w-4 h-4 transition-all ${
-                    firstMemory?.isFavoritedByUser
-                      ? 'fill-yellow-400 text-yellow-400 scale-110'
-                      : 'text-gray-400 hover:text-gray-600'
-                  }`}
-                />
-                <span className="text-xs text-gray-600 font-medium">
-                  {firstMemory?.isFavoritedByUser ? 'Favorited' : 'Favorite'}
-                </span>
-              </button>
-            </div>
-
             {/* LOCATION */}
             {firstMemory.location && (
               <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
@@ -155,6 +139,15 @@ export function MemoryGroupCard({ group, tripId }) {
             )}
           </div>
         </CardContent>
+        <CardFooter>
+          <Button className="w-full"
+            onClick={() => setIsPhotoModalOpen(true)}
+          >Add More Memories</Button>
+          <AddMorePhotos
+            tripId={tripId}
+            isOpen={isPhotoModalOpen}
+            onClose={() => setIsPhotoModalOpen(false)} />
+        </CardFooter>
       </Card>
 
       {/* DELETE CONFIRMATION MODAL */}

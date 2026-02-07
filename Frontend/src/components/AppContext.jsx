@@ -16,19 +16,19 @@ export const useAppContext = () => {
 
 
 
-const fetchTrips = async()=>{
+const fetchTrips = async () => {
   try {
     const res = await axios.get(`${API_URL}/trips`)
-    return res.data;
+    return res.data || [];
   } catch (error) {
     console.error('Error fetching trips:', error);
   }
 }
 
-const fetchMemories = async(tripId)=>{
+const fetchMemories = async (tripId) => {
   try {
-    const res = await axios.get(`${API_URL}/memories`); 
-    return res.data;
+    const res = await axios.get(`${API_URL}/memories`);
+    return res.data || [];
   } catch (error) {
     console.error('Error fetching memories for trip:', error);
     return [];
@@ -74,54 +74,53 @@ const mergeTripsWithMemories = (trips, memories, userId) => {
 
 export const AppProvider = ({ children }) => {
   const { user, isLoading } = useAuth()
-  
+
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateTripModalOpen, setIsCreateTripModalOpen] = useState(false)
   const [selectedMemory, setSelectedMemory] = useState(null)
-  const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false)
   const [trips, setTrips] = useState([])
 
   // Initialize trips when user is available
   useEffect(() => {
     if (!user || isLoading) return
-      
-      const loadData = async()=>{
-        try {
-          const[tripsData, memoriesData] = await Promise.all([
+
+    const loadData = async () => {
+      try {
+        const [tripsData, memoriesData] = await Promise.all([
           fetchTrips(),
           fetchMemories()
         ])
         const mergedData = mergeTripsWithMemories(tripsData, memoriesData, user._id)
         setTrips(mergedData)
-        } catch (error) {
-          console.error('Error loading data:', error);
-        }
-        
-      } 
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+
+    }
     loadData()
   }, [user, isLoading])
 
   // Get all memories from all trips, sorted by timestamp
-  const allMemories = useMemo(()=>{
-    if(!trips.length) return []
-    return trips.flatMap(trip =>trip.memories)
-      .sort((a,b)=> new Date(b.timestamp)- new Date(a.timestamp))
+  const allMemories = useMemo(() => {
+    if (!trips.length) return []
+    return trips.flatMap(trip => trip.memories)
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
   })
   // Get favorite memories
-    const favoriteMemories = useMemo(() => {
-      if (!trips.length || !user) return []
-      return trips
-        .flatMap((trip) => trip.memories)
-        .filter((memory) => memory.isFavoritedByUser)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-    }, [trips, user])
+  const favoriteMemories = useMemo(() => {
+    if (!trips.length || !user) return []
+    return trips
+      .flatMap((trip) => trip.memories)
+      .filter((memory) => memory.isFavoritedByUser)
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+  }, [trips, user])
 
   // Filter memories based on search query
   const filteredMemories = useMemo(() => {
     if (!searchQuery) return allMemories
-    
+
     const query = searchQuery.toLowerCase()
-    return allMemories.filter(memory => 
+    return allMemories.filter(memory =>
       memory.description?.toLowerCase().includes(query) ||
       memory.author?.name?.toLowerCase().includes(query) ||
       memory.location?.toLowerCase().includes(query)
@@ -131,75 +130,75 @@ export const AppProvider = ({ children }) => {
   // Filter trips based on search query
   const filteredTrips = useMemo(() => {
     if (!searchQuery) return trips
-    
+
     const query = searchQuery.toLowerCase()
-    return trips.filter(trip => 
+    return trips.filter(trip =>
       trip.name.toLowerCase().includes(query) ||
       trip.description.toLowerCase().includes(query)
     )
   }, [trips, searchQuery])
 
-  const handleCreateTrip = async(tripData) => {
+  const handleCreateTrip = async (tripData) => {
     try {
-      const res= await axios.post(`${API_URL}/trips`,tripData);
-      const newTrip=res.data;
-   setTrips(prevTrips=>[{...newTrip,id:newTrip._id,memories:[]},...prevTrips])
+      const res = await axios.post(`${API_URL}/trips`, tripData);
+      const newTrip = res.data;
+      setTrips(prevTrips => [{ ...newTrip, id: newTrip._id, memories: [] }, ...prevTrips])
     } catch (error) {
       console.error('Error creating trip:', error);
     }
-   }
-  
+  }
 
-   // TOGGLE FAVORITE
-   const handleToggleFavorite = async (memoryId) => {
-     try {
-       console.log('⭐ FAVORITE TOGGLE:', memoryId)
-       const res = await axios.put(`${API_URL}/memories/${memoryId}/favorite`)
- 
-       setTrips((prevTrips) =>
-         prevTrips.map((trip) => ({
-           ...trip,
-           memories: trip.memories.map((memory) =>
-             memory.id === memoryId
-               ? {
-                   ...memory,
-                   isFavoritedByUser: res.data.isFavorited,
-                   isFavorite: res.data.memory.isFavorite,
-                 }
-               : memory
-           ),
-         }))
-       )
- 
-       console.log('✅ Favorite toggled')
-     } catch (error) {
-       console.error('Error toggling favorite:', error)
-     }
-   }
+
+  // TOGGLE FAVORITE
+  const handleToggleFavorite = async (memoryId) => {
+    try {
+      console.log('⭐ FAVORITE TOGGLE:', memoryId)
+      const res = await axios.put(`${API_URL}/memories/${memoryId}/favorite`)
+
+      setTrips((prevTrips) =>
+        prevTrips.map((trip) => ({
+          ...trip,
+          memories: trip.memories.map((memory) =>
+            memory.id === memoryId
+              ? {
+                ...memory,
+                isFavoritedByUser: res.data.isFavorited,
+                isFavorite: res.data.memory.isFavorite,
+              }
+              : memory
+          ),
+        }))
+      )
+
+      console.log('✅ Favorite toggled')
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
+  }
 
   // const handleMemoryClick = (memory) => {
   //   setSelectedMemory(memory)
   //   setIsMemoryModalOpen(true)
   // }
-  const handleAddMemories = async(newMemories) => {
-   try {
-    const res = await axios.post(`${API_URL}/memories`, newMemories)
-    const newMemory = res.data
+  const handleAddMemories = async (newMemories) => {
+    try {
+      const res = await axios.post(`${API_URL}/memories`, newMemories)
+      const newMemory = res.data
 
-    setTrips((prevTrips) =>
-      prevTrips.map((trip) => {
-        if (trip.id === newMemory.tripId) {
-          return {
-            ...trip,
-            memories: [...trip.memories, newMemory],
+      setTrips((prevTrips) =>
+        prevTrips.map((trip) => {
+          if (trip.id === newMemory.tripId) {
+            return {
+              ...trip,
+              memories: [...trip.memories, newMemory],
+            }
           }
-        }
-        return trip
-      })
-    )
-   } catch (error) {
-    console.error('Error adding memories:', error)
-   }
+          return trip
+        })
+      )
+    } catch (error) {
+      console.error('Error adding memories:', error)
+    }
   }
 
   const handleDeleteMemory = async (memoryId) => {
@@ -247,8 +246,8 @@ export const AppProvider = ({ children }) => {
     selectedMemory,
     favoriteMemories,
     setSelectedMemory,
-    isMemoryModalOpen,
-    setIsMemoryModalOpen,
+    // isMemoryModalOpen,
+    // setIsMemoryModalOpen,
     handleAddMemories,
     // selectedPhoto,
     handleCreateTrip,
