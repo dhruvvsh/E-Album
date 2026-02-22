@@ -64,7 +64,7 @@ export default function Settings() {
       </Card>
 
       {/* Appearance */}
-      <Card className="mb-6">
+      {/* <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Moon className="h-5 w-5" />
@@ -108,7 +108,7 @@ export default function Settings() {
             </Select>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Privacy */}
       <Card className="mb-6">
@@ -164,7 +164,10 @@ export default function Settings() {
           <CardDescription>Irreversible actions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
+          <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive"
+            onClick={() => {
+
+            }}>
             Delete Account
           </Button>
           <p className="text-sm text-muted-foreground">

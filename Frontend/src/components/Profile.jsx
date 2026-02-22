@@ -12,9 +12,9 @@ import { useAppContext } from './AppContext.jsx'
 export default function Profile() {
   const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
-  const [name, setName] = useState(user?.name || '')
+  const [name, setName] = useState(user?.username || '')
   const [email, setEmail] = useState(user?.email || '')
-  const {filteredTrips} = useAppContext()
+  const { filteredTrips } = useAppContext()
   const trips = filteredTrips || []
 
   const handleSave = () => {
@@ -35,9 +35,9 @@ export default function Profile() {
           <div className="flex items-center space-x-6">
             <div className="relative">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={user?.avatar} alt={user?.name} />
+                <AvatarImage src={user?.avatar} alt={user?.username} />
                 <AvatarFallback className="text-2xl">
-                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  {user?.username?.charAt(0)?.toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               <Button
@@ -49,7 +49,7 @@ export default function Profile() {
               </Button>
             </div>
             <div className="flex-1">
-              <h3 className="mb-1">{user?.name}</h3>
+              <h3 className="mb-1">{user?.username}</h3>
               <p className="text-muted-foreground">{user?.email}</p>
             </div>
             <Button

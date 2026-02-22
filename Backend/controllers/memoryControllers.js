@@ -80,7 +80,7 @@ export const toggleFavorite = async (req, res) => {
     if (isFavorited) {
       // Remove from favorites
       memory.isFavorite = memory.isFavorite.filter(
-        (id) => id.toString() !== userId.toString()
+        (id) => id.toString() !== userId.toString(),
       );
     } else {
       // Add to favorites

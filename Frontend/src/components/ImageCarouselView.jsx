@@ -61,7 +61,10 @@ export function ImageCarouselView() {
     )
   }
 
-  const images = tripMemories.map((m) => m.image)
+  const images = tripMemories.map((m) => ({
+    id: m.id,
+    image: m.image,
+  }))
   const [, memoryId] = memorycardId.split('_')
   const startIndex = tripMemories.findIndex((m) => m.id === memoryId)
 
@@ -78,10 +81,6 @@ export function ImageCarouselView() {
       images={images}
       tripMemories={tripMemories}
       initialIndex={Math.max(0, startIndex)}
-      onClose={() => {
-        console.log('❌ CAROUSEL CLOSED')
-        navigate(`/trips/${tripId}`)
-      }}
     />
   )
 }
