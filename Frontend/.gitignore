@@ -13,6 +13,9 @@ dist-ssr
 *.local
 dumb.js
 rough.js
+.env
+.DS_Store
+**/.DS_Store
 
 # Editor directories and files
 .vscode/*

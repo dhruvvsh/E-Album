@@ -149,7 +149,6 @@ export const AppProvider = ({ children }) => {
   }
 
 
-  // TOGGLE FAVORITE
   const handleToggleFavorite = async (memoryId) => {
     try {
       console.log('⭐ FAVORITE TOGGLE:', memoryId)
@@ -219,6 +218,20 @@ export const AppProvider = ({ children }) => {
     }
   }
 
+const uploadToCloudinary = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "E-album");
+  
+  const res = await fetch(
+    "https://api.cloudinary.com/v1_1/dvgywczai/image/upload",
+    { method: "POST", body: formData }
+  );
+  
+  const data = await res.json();
+  return data.secure_url; 
+};
+
   // Normalised selected photo for PhotoModal 
   // const selectedPhoto = selectedMemory ? {
   //   id: selectedMemory.id,
@@ -252,7 +265,8 @@ export const AppProvider = ({ children }) => {
     // selectedPhoto,
     handleCreateTrip,
     handleToggleFavorite,
-    handleDeleteMemory
+    handleDeleteMemory,
+    uploadToCloudinary
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

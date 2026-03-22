@@ -6,8 +6,12 @@ import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import { Switch } from './ui/switch'
+import { useAppContext } from './AppContext'
 
 export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
+
+  const {uploadToCloudinary} = useAppContext();
+  const[uploading,setUploading]= useState(false);
   const [formData, setFormData] = useState({
     tripname: '',
     description: '',
@@ -56,16 +60,25 @@ export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
 
    
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageURL = URL.createObjectURL(file);
-      setFormData({ ...formData, coverPhoto: imageURL });
-    }
-  };
+  const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  setUploading(true);
+  try {
+    const isVideo = file.type.startsWith("video/");
+    const url = await uploadToCloudinary(file, isVideo ? "video" : "image");
+    // const url = await uploadToCloudinary(file);
+    setFormData({ ...formData, coverPhoto: url }); 
+  } catch (err) {
+    console.error("Upload failed", err);
+  } finally {
+    setUploading(false);
+  }
+};
 
   const handleButtonClick = () => {
-    // Trigger hidden file input
+
     document.getElementById("coverPhoto").click();
   };
 
