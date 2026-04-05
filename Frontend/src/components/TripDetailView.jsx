@@ -12,7 +12,7 @@ import { AddFirstMemory } from './AddMemories.jsx'
 export function TripDetailView() {
   const { tripId } = useParams()
   const navigate = useNavigate()
-  const { trips } = useAppContext()
+  const { trips, handleAddMemories } = useAppContext()
 
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false)
 
@@ -76,7 +76,7 @@ export function TripDetailView() {
         </Button>
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
           <h1 className="mb-2 text-2xl font-bold">{trip.name}</h1>
-          {trip.description && <p className="text-white/90 mb-4">{trip.description}</p>}
+          {trip.description && <p className="text-white/90 mb-4 line-clamp-4">{trip.description}</p>}
           <div className="flex items-center space-x-6 text-white/80">
             <div className="flex items-center"><Calendar className="h-4 w-4 mr-2" /><span>{formatDateRange(trip.startDate, trip.endDate)}</span></div>
             <div className="flex items-center"><Users className="h-4 w-4 mr-2" /><span>{trip.participants?.length || 0} participants</span></div>
@@ -116,6 +116,7 @@ export function TripDetailView() {
           <AddFirstMemory
             isOpen={isMemoryModalOpen}
             onClose={() => setIsMemoryModalOpen(false)}
+            onAddMemory={handleAddMemories}
           />
         </div>
 

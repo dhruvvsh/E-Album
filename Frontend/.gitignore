@@ -16,6 +16,7 @@ rough.js
 .env
 .DS_Store
 **/.DS_Store
+abc.jsx
 
 # Editor directories and files
 .vscode/*

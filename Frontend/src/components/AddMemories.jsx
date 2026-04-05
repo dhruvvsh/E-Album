@@ -11,9 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Upload, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 
 // MODAL 1: Add First Memory (Full Details)
-const AddFirstMemory = ({ isOpen, onClose, onAddMemory, tripId }) => {
+const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
+  const { tripId } = useParams()
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     image: "",

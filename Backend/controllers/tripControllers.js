@@ -17,7 +17,10 @@ export const createTrip = async (req, res) => {
       participants: [req.user._id],
     });
     const savedTrip = await newTrip.save();
-    res.status(201).json(savedTrip);
+    const tripWithUser = await savedTrip
+      .populate("createdBy", "name email")
+      .populate("participants", "name email");
+    res.status(201).json(tripWithUser);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -84,7 +87,7 @@ export const deleteTrip = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
     await Memory.deleteMany({ trip: trip._id });
-    await trip.remove();
+    await Trip.findByIdAndDelete(req.params.id);
     res.json({ message: "Trip deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });

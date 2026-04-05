@@ -148,6 +148,14 @@ export const AppProvider = ({ children }) => {
     }
   }
 
+  const handleDeleteTrip = async (tripId) => {
+    try{
+      await axios.delete(`${API_URL}/trips/${tripId}`);
+      setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripId));
+    } catch (error) {
+      console.error('Error deleting trip:', error);
+    }
+  }
 
   const handleToggleFavorite = async (memoryId) => {
     try {
@@ -264,6 +272,7 @@ const uploadToCloudinary = async (file) => {
     handleAddMemories,
     // selectedPhoto,
     handleCreateTrip,
+    handleDeleteTrip,
     handleToggleFavorite,
     handleDeleteMemory,
     uploadToCloudinary
