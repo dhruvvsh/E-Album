@@ -8,7 +8,9 @@ import connectDB from "./config/db.js";
 import userrouter from "./routes/userRoutes.js";
 import triprouter from "./routes/tripRoutes.js";
 import memoryrouter from "./routes/memoryRoutes.js";
-import cloudinarySignaturerouter from "./routes/cloudinaryRoutes.js";
+import { cloudinaryConfig } from './utils/cloudinary.js';
+cloudinaryConfig();
+// import cloudinarySignaturerouter from "./routes/cloudinaryRoutes.js";
 
 // Load environment variables
 
@@ -21,7 +23,7 @@ app.use(express.json());
 app.use("/users", userrouter);
 app.use("/trips", triprouter);
 app.use("/memories", memoryrouter);
-app.use("/cloudinary", cloudinarySignaturerouter);
+// app.use("/cloudinary", cloudinarySignaturerouter);
 
 // Connect MongoDB
 connectDB()

@@ -1,6 +1,6 @@
 import Trip from "../models/tripModel.js";
 import Memory from "../models/memoriesModel.js";
-
+import cloudinary, {getPublicId} from "../utils/cloudinary.js";
 // CREATE TRIP
 export const createTrip = async (req, res) => {
   try {
@@ -17,7 +17,7 @@ export const createTrip = async (req, res) => {
       participants: [req.user._id],
     });
     const savedTrip = await newTrip.save();
-    const tripWithUser = await savedTrip
+    const tripWithUser = await Trip.findById(savedTrip._id)
       .populate("createdBy", "name email")
       .populate("participants", "name email");
     res.status(201).json(tripWithUser);
@@ -85,6 +85,13 @@ export const deleteTrip = async (req, res) => {
     // Only creator can delete
     if (trip.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Access denied" });
+    }
+    const publicId = getPublicId(trip.coverPhoto);
+    trip.coverPhoto && (await cloudinary.uploader.destroy(publicId));
+    const memories = await Memory.find({trip: trip._id});
+    for (const memory of memories) {
+      const memoryPublicId = getPublicId(memory.image);
+      memory.image && (await cloudinary.uploader.destroy(memoryPublicId));
     }
     await Memory.deleteMany({ trip: trip._id });
     await Trip.findByIdAndDelete(req.params.id);
