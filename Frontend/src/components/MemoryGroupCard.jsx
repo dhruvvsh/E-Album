@@ -16,11 +16,10 @@ import { useAppContext } from './AppContext.jsx'
 
 export function MemoryGroupCard({ group, tripId }) {
   const navigate = useNavigate()
-  const { handleToggleFavorite, handleDeleteMemory } = useAppContext()
+  const { handleToggleFavorite, handleDeleteMemory, handleAddMemories } = useAppContext()
   const firstMemory = group.memories[0]
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
-
 
   const formatTimeAgo = (timestamp) => {
     const now = new Date()
@@ -34,38 +33,37 @@ export function MemoryGroupCard({ group, tripId }) {
   const memorycardId = `${group.user._id}_${firstMemory.id}`
 
   const handleImageClick = () => {
-    console.log('🖱️ MemoryGroupCard CLICKED')
-    console.log('📍 Navigating to:', `/trips/${tripId}/${memorycardId}`)
     navigate(`/trips/${tripId}/${memorycardId}`)
   }
 
-  const handleToggleFav = (e) => {
-    e.stopPropagation()
-    if (firstMemory) {
-      handleToggleFavorite(firstMemory.id)
-    }
-  }
-
   const handleDelete = () => {
-    console.log('🗑️ DELETE clicked')
     handleDeleteMemory(firstMemory._id)
     setShowDeleteConfirm(false)
   }
 
+  // each extra photo inherits description & location from the first memory
+  const handleAddMorePhotos = async (newPhotos) => {
+    const enriched = newPhotos.map((photo) => ({
+      ...photo,
+      description: firstMemory.description,
+      location: firstMemory.location || "",
+    }))
+
+    for (const photo of enriched) {
+      await handleAddMemories(photo)
+    }
+
+    setIsPhotoModalOpen(false)
+  }
+
   return (
     <>
-      <Card
-        className="w-full max-w-md overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
-
-      >
+      <Card className="w-full max-w-md overflow-hidden hover:shadow-lg transition-all cursor-pointer group">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 flex-1">
               <Avatar className="h-10 w-10">
-                <AvatarImage
-                  src={firstMemory.author?.avatar}
-                  alt={firstMemory.author?.name}
-                />
+                <AvatarImage src={firstMemory.author?.avatar} alt={firstMemory.author?.name} />
                 <AvatarFallback>
                   {firstMemory.author?.email?.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -78,7 +76,6 @@ export function MemoryGroupCard({ group, tripId }) {
               </div>
             </div>
 
-            {/* MENU DROPDOWN */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -87,10 +84,7 @@ export function MemoryGroupCard({ group, tripId }) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowDeleteConfirm(true)
-                  }}
+                  onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true) }}
                   className="text-red-600 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -101,9 +95,7 @@ export function MemoryGroupCard({ group, tripId }) {
           </div>
         </CardHeader>
 
-        <CardContent className="p-0"
-          onClick={handleImageClick}>
-          {/* MAIN IMAGE - NO STRETCHING */}
+        <CardContent className="p-0" onClick={handleImageClick}>
           <div className="aspect-square overflow-hidden relative">
             <ImageWithFallback
               src={firstMemory.image}
@@ -117,49 +109,46 @@ export function MemoryGroupCard({ group, tripId }) {
             )}
           </div>
 
-          {/* DESCRIPTION + METADATA */}
           <div className="p-4 bg-gradient-to-t from-gray-400 to-white">
-            {/* CAPTION/DESCRIPTION */}
             <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-2">
               "{firstMemory.description}"
             </p>
-            {/* LOCATION */}
             {firstMemory.location && (
               <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
                 <MapPin className="w-3 h-3" />
                 <span className="line-clamp-1">{firstMemory.location}</span>
               </div>
             )}
-
-            {/* PHOTO COUNT */}
             {group.memories.length > 1 && (
-              <p className="text-xs text-gray-500">
-                {group.memories.length} photos
-              </p>
+              <p className="text-xs text-gray-500">{group.memories.length} photos</p>
             )}
           </div>
         </CardContent>
+
         <CardFooter>
-          <Button className="w-full"
-            onClick={() => setIsPhotoModalOpen(true)}
-          >Add More Memories</Button>
-          <AddMorePhotos
-            tripId={tripId}
-            isOpen={isPhotoModalOpen}
-            onClose={() => setIsPhotoModalOpen(false)} />
+          <Button
+            className="w-full"
+            onClick={(e) => { e.stopPropagation(); setIsPhotoModalOpen(true) }}
+          >
+            Add More Memories
+          </Button>
         </CardFooter>
       </Card>
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* ✅ FIX: AddMorePhotos moved outside Card; onAddPhotos now wired */}
+      <AddMorePhotos
+        tripId={tripId}
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        onAddPhotos={handleAddMorePhotos}
+      />
+
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Delete Memory?
-            </h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Memory?</h2>
             <p className="text-gray-600 mb-6">
-              This will delete this memory permanently. This action cannot be
-              undone.
+              This will delete this memory permanently. This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button

@@ -88,12 +88,12 @@ export const deleteTrip = async (req, res) => {
     }
     const publicId = getPublicId(trip.coverPhoto);
     trip.coverPhoto && (await cloudinary.uploader.destroy(publicId));
-    const memories = await Memory.find({trip: trip._id});
+   const memories = await Memory.find({ tripId: trip._id });
     for (const memory of memories) {
       const memoryPublicId = getPublicId(memory.image);
       memory.image && (await cloudinary.uploader.destroy(memoryPublicId));
     }
-    await Memory.deleteMany({ trip: trip._id });
+    await Memory.deleteMany({ tripId: trip._id });
     await Trip.findByIdAndDelete(req.params.id);
     res.json({ message: "Trip deleted successfully" });
   } catch (error) {

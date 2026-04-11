@@ -14,7 +14,7 @@ import {
 } from './ui/dialog'
 import { Button } from './ui/button'
 
-export function TripCard({ trip, onClick }) {
+export function TripCard({ trip, onClick }) { 
 
   const[showDeleteDialog,setShowDeleteDialog] = useState(false);
   const { handleDeleteTrip } = useAppContext();

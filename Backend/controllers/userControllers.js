@@ -4,6 +4,7 @@ import { generateToken } from "../utils/generateTokens.js";
 
 // SIGNUP
 export const registerUser = async (req, res) => {
+  try{
   const { username, email, password } = req.body;
 
   // Check existing user
@@ -26,10 +27,14 @@ export const registerUser = async (req, res) => {
     user,
     token: generateToken(user._id),
   });
-};
+} catch (error) {
+  res.status(500).json({ message: "Server Error", error: error.message });
+}
+}; 
 
 // LOGIN
 export const loginUser = async (req, res) => {
+  try {
   const { email, password } = req.body;
 
   // Check user
@@ -45,4 +50,7 @@ export const loginUser = async (req, res) => {
     user,
     token: generateToken(user._id),
   });
+} catch (error) {
+  res.status(500).json({ message: "Server Error", error: error.message });
+}
 };

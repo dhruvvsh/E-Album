@@ -177,7 +177,7 @@ export const AppProvider = ({ children }) => {
         }))
       )
 
-      console.log('✅ Favorite toggled')
+      console.log('Favorite toggled')
     } catch (error) {
       console.error('Error toggling favorite:', error)
     }

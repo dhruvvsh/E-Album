@@ -12,10 +12,13 @@ import { Upload, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useAppContext } from "./AppContext.jsx"; 
 
 // MODAL 1: Add First Memory (Full Details)
 const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
-  const { tripId } = useParams()
+  const { tripId } = useParams();
+  const { uploadToCloudinary } = useAppContext(); 
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     image: "",
@@ -24,15 +27,19 @@ const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
     location: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.image) {
       setError("Please upload an image");
       return;
     }
+    if (!formData.description.trim()) {
+      setError("Please add a description");
+      return;
+    }
 
-    onAddMemory({
+    await onAddMemory({
       tripId: tripId,
       image: formData.image,
       description: formData.description,
@@ -40,21 +47,26 @@ const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
       location: formData.location,
     });
 
-    setFormData({
-      image: "",
-      description: "",
-      caption: "",
-      location: "",
-    });
+    setFormData({ image: "", description: "", caption: "", location: "" });
     setError("");
     onClose();
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const imageURL = URL.createObjectURL(file);
-      setFormData({ ...formData, image: imageURL });
+    if (!file) return;
+
+    setUploading(true);
+    setError("");
+    try {
+      const isVideo = file.type.startsWith("video/");
+      const url = await uploadToCloudinary(file, isVideo ? "video" : "image");
+      setFormData((prev) => ({ ...prev, image: url }));
+    } catch (err) {
+      console.error("Upload failed", err);
+      setError("Image upload failed. Please try again.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -86,12 +98,17 @@ const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
               <Input
                 id="imageUpload"
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 onChange={handleFileChange}
                 className="hidden"
+                disabled={uploading}
               />
 
-              {formData.image ? (
+              {uploading ? (
+                <div className="flex items-center gap-2 flex-1 p-2 border rounded text-sm text-gray-500">
+                  <span className="animate-spin">⏳</span> Uploading...
+                </div>
+              ) : formData.image ? (
                 <div className="flex items-center gap-2 flex-1">
                   <img
                     src={formData.image}
@@ -129,7 +146,7 @@ const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
               placeholder="Tell us about your memory..."
               value={formData.description}
               onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
+                setFormData((prev) => ({ ...prev, description: e.target.value }))
               }
               rows={3}
             />
@@ -144,7 +161,7 @@ const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
               value={formData.caption}
               maxLength={55}
               onChange={(e) =>
-                setFormData({ ...formData, caption: e.target.value })
+                setFormData((prev) => ({ ...prev, caption: e.target.value }))
               }
             />
           </div>
@@ -154,11 +171,11 @@ const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
             <Label htmlFor="location">📍 Location</Label>
             <Input
               id="location"
-              placeholder="location..."
+              placeholder="Where was this?"
               value={formData.location}
               maxLength={20}
               onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
+                setFormData((prev) => ({ ...prev, location: e.target.value }))
               }
             />
           </div>
@@ -168,8 +185,8 @@ const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="button" onClick={handleSubmit}>
-              Add Memory
+            <Button type="button" onClick={handleSubmit} disabled={uploading}>
+              {uploading ? "Uploading..." : "Add Memory"}
             </Button>
           </div>
         </div>
@@ -179,17 +196,14 @@ const AddFirstMemory = ({ isOpen, onClose, onAddMemory }) => {
 };
 
 // MODAL 2: Add More Photos (Only Images + Captions)
-const AddMorePhotos = ({
-  isOpen,
-  onClose,
-  // onAddPhotos,
-  tripId,
-  // existingMemory,
-}) => {
+
+const AddMorePhotos = ({ isOpen, onClose, onAddPhotos, tripId }) => {
+  const { uploadToCloudinary } = useAppContext(); 
+  const [uploading, setUploading] = useState(false); 
   const [error, setError] = useState("");
   const [images, setImages] = useState([]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (images.length === 0) {
@@ -203,47 +217,54 @@ const AddMorePhotos = ({
       return;
     }
 
-    // Create array with same description & location from first memory
+   
     const newPhotos = images.map((img) => ({
       tripId: tripId,
-      image: img.file,
-      imageUrl: img.url,
-      caption: img.caption
+      image: img.url, // already-uploaded Cloudinary URL
+      caption: img.caption,
     }));
 
-    onAddPhotos(newPhotos);
+    await onAddPhotos(newPhotos);
 
     setImages([]);
     setError("");
     onClose();
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
-
     if (files.length === 0) return;
 
-    const newImages = files.map((file) => ({
-      file: file,
-      url: URL.createObjectURL(file),
-      caption: "",
-    }));
-
-    setImages([...images, ...newImages]);
+    setUploading(true);
     setError("");
-    e.target.value = "";
+
+    try {
+      const uploadedImages = await Promise.all(
+        files.map(async (file) => {
+          const isVideo = file.type.startsWith("video/");
+          const url = await uploadToCloudinary(file, isVideo ? "video" : "image");
+          return { url, caption: "" };
+        })
+      );
+
+      setImages((prev) => [...prev, ...uploadedImages]);
+    } catch (err) {
+      console.error("Upload failed", err);
+      setError("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   };
 
   const removeImage = (index) => {
-    const updated = images.filter((_, i) => i !== index);
-    setImages(updated);
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const updateCaption = (index, caption) => {
-    const updated = images.map((img, i) =>
-      i === index ? { ...img, caption } : img,
+    setImages((prev) =>
+      prev.map((img, i) => (i === index ? { ...img, caption } : img))
     );
-    setImages(updated);
   };
 
   const handleButtonClick = () => {
@@ -268,21 +289,6 @@ const AddMorePhotos = ({
             </div>
           )}
 
-          {/* Show existing details */}
-          {/* {existingMemory && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-1">
-              <p className="text-sm font-semibold text-blue-900">
-                Same details will be used:
-              </p>
-              <p className="text-xs text-blue-700">
-                📝 {existingMemory.description || "No description"}
-              </p>
-              <p className="text-xs text-blue-700">
-                📍 {existingMemory.location || "No location"}
-              </p>
-            </div>
-          )} */}
-
           {/* Image Upload */}
           <div className="space-y-2">
             <Label htmlFor="morePhotosUpload">🖼️ Upload Photos</Label>
@@ -290,10 +296,11 @@ const AddMorePhotos = ({
               <Input
                 id="morePhotosUpload"
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 multiple
                 onChange={handleFileChange}
                 className="hidden"
+                disabled={uploading}
               />
 
               <Button
@@ -301,9 +308,18 @@ const AddMorePhotos = ({
                 variant="outline"
                 className="flex-1"
                 onClick={handleButtonClick}
+                disabled={uploading}
               >
-                <Upload className="h-4 w-4 mr-2" />
-                Choose Images ({images.length} selected)
+                {uploading ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span> Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose Images ({images.length} selected)
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -361,7 +377,7 @@ const AddMorePhotos = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="button" onClick={handleSubmit}>
+            <Button type="button" onClick={handleSubmit} disabled={uploading}>
               Add {images.length} {images.length === 1 ? "Photo" : "Photos"}
             </Button>
           </div>
@@ -371,5 +387,4 @@ const AddMorePhotos = ({
   );
 };
 
-// Export both components
 export { AddFirstMemory, AddMorePhotos };

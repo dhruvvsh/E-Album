@@ -62,7 +62,7 @@ export function ImageCarouselView() {
   }
 
   const images = tripMemories.map((m) => ({
-    id: m.id,
+    id: m. id,
     image: m.image,
   }))
   const [, memoryId] = memorycardId.split('_')
