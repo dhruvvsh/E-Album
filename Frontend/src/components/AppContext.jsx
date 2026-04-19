@@ -208,21 +208,21 @@ export const AppProvider = ({ children }) => {
     }
   }
 
-  const handleDeleteMemory = async (memoryId) => {
+  const handleDeleteMemoryGroup = async (memoryIds) => {
     try {
-      console.log('🗑️ DELETE MEMORY:', memoryId)
-      await axios.delete(`${API_URL}/memories/${memoryId}`)
+      console.log('🗑️ DELETE MEMORY:', memoryIds)
+      await axios.delete(`${API_URL}/memories/group`, { data: { memoryIds } })
 
       setTrips((prevTrips) =>
         prevTrips.map((trip) => ({
           ...trip,
-          memories: trip.memories.filter((m) => m.id !== memoryId),
+          memories: trip.memories.filter((m) => !memoryIds.includes(m._id)),
         }))
       )
 
-      console.log('✅ Memory deleted')
+      console.log('✅ MemoryGroup deleted')
     } catch (error) {
-      console.error('Error deleting memory:', error)
+      console.error('Error deleting memory group:', error)
     }
   }
 
@@ -239,20 +239,6 @@ const uploadToCloudinary = async (file) => {
   const data = await res.json();
   return data.secure_url; 
 };
-
-  // Normalised selected photo for PhotoModal 
-  // const selectedPhoto = selectedMemory ? {
-  //   id: selectedMemory.id,
-  //   url: selectedMemory.image,
-  //   title: selectedMemory.description,
-  //   description: selectedMemory.description,
-  //   photographer: selectedMemory.author.name,
-  //   date: new Date(selectedMemory.timestamp).toLocaleDateString(),
-  //   likes: selectedMemory.likes,
-  //   isLiked: selectedMemory.isLiked,
-  //   category: 'memory',
-  //   tags: selectedMemory.location ? [selectedMemory.location] : []
-  // } : null
 
 
   const value = {
@@ -274,7 +260,8 @@ const uploadToCloudinary = async (file) => {
     handleCreateTrip,
     handleDeleteTrip,
     handleToggleFavorite,
-    handleDeleteMemory,
+    // handleDeleteMemory,
+    handleDeleteMemoryGroup,
     uploadToCloudinary
   }
 

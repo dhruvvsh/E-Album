@@ -1,5 +1,6 @@
 import Memory from "../models/memoriesModel.js";
 import Trip from "../models/tripModel.js";
+import cloudinary, {getPublicId} from "../utils/cloudinary.js";
 
 // CREATE MEMORY
 export const createMemory = async (req, res) => {
@@ -144,3 +145,24 @@ export const deleteMemory = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
+
+export const deleteMemoryGroup = async (req,res) =>{
+  try {
+    const {memoryIds} = req.body
+    if (!memoryIds) return res.status(404).json({ message: "Memory group not found" });
+
+    const memories = await Memory.find({ _id: { $in: memoryIds } });
+    for (const memory of memories) {
+      const memoryPublicId = getPublicId(memory.image);
+      memory.image && (await cloudinary.uploader.destroy(memoryPublicId));
+    }
+      await Memory.deleteMany({ _id: 
+        { $in: memoryIds }
+       });
+    
+    res.json({ message: "Memory group deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+}

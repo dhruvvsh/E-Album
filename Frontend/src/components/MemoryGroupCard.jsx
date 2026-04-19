@@ -16,7 +16,7 @@ import { useAppContext } from './AppContext.jsx'
 
 export function MemoryGroupCard({ group, tripId }) {
   const navigate = useNavigate()
-  const { handleToggleFavorite, handleDeleteMemory, handleAddMemories } = useAppContext()
+  const { handleToggleFavorite, handleDeleteMemoryGroup, handleAddMemories } = useAppContext()
   const firstMemory = group.memories[0]
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
@@ -36,8 +36,10 @@ export function MemoryGroupCard({ group, tripId }) {
     navigate(`/trips/${tripId}/${memorycardId}`)
   }
 
+  const memoryIds = group.memories.map(m=> m.id);
+
   const handleDelete = () => {
-    handleDeleteMemory(firstMemory._id)
+    handleDeleteMemoryGroup(memoryIds)
     setShowDeleteConfirm(false)
   }
 

@@ -6,6 +6,7 @@ import {
   updateMemory,
   deleteMemory,
   toggleFavorite,
+  deleteMemoryGroup,
 } from "../controllers/memoryControllers.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -26,7 +27,11 @@ memoryrouter.put("/:id/favorite", protect, toggleFavorite);
 // Update memory
 memoryrouter.put("/:id", protect, updateMemory);
 
+// Delete multiple memories (for memory group deletion)
+memoryrouter.delete("/group", protect, deleteMemoryGroup);
+
 // Delete memory
 memoryrouter.delete("/:id", protect, deleteMemory);
+
 
 export default memoryrouter;
