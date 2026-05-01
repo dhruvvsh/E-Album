@@ -1,8 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-console.log('Current directory:', process.cwd());
-console.log('Looking for .env at:', process.cwd() + '/.env');
 dotenv.config();
 import connectDB from "./config/db.js";
 import userrouter from "./routes/userRoutes.js";

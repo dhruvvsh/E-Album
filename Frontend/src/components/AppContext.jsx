@@ -226,18 +226,34 @@ export const AppProvider = ({ children }) => {
     }
   }
 
+  const handleDeleteMemory = async (memoryId) => {
+    try {
+      console.log("🗑️ DELETE MEMORY:", memoryId);
+      await axios.delete(`${API_URL}/memories/${memoryId}`);
+      setTrips((prevTrips) =>
+        prevTrips.map((trip) => ({
+          ...trip,
+          memories: trip.memories.filter((m) => m.id !== memoryId),
+        })),
+      );
+      console.log("✅ Memory deleted");
+    } catch (error) {
+      console.error("Error deleting memory:", error);
+    }
+  };
+
 const uploadToCloudinary = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", "E-album");
-  
+
   const res = await fetch(
     "https://api.cloudinary.com/v1_1/dvgywczai/image/upload",
-    { method: "POST", body: formData }
+    { method: "POST", body: formData },
   );
-  
+
   const data = await res.json();
-  return data.secure_url; 
+  return data.secure_url;
 };
 
 
@@ -260,7 +276,7 @@ const uploadToCloudinary = async (file) => {
     handleCreateTrip,
     handleDeleteTrip,
     handleToggleFavorite,
-    // handleDeleteMemory,
+    handleDeleteMemory,
     handleDeleteMemoryGroup,
     uploadToCloudinary
   }

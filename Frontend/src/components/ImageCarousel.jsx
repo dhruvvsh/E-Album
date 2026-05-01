@@ -18,28 +18,6 @@ export function ImageCarousel({ images, tripMemories, startIndex }) {
   const { handleToggleFavorite } = useAppContext();
   const navigate = useNavigate();
   const { tripId, memorycardId } = useParams();
-  const posts = [
-    {
-      id: 1,
-      image: "https://picsum.photos/1200/800?random=1",
-    },
-    {
-      id: 2,
-      image: "https://picsum.photos/1200/800?random=2",
-    },
-    {
-      id: 3,
-      image: "https://picsum.photos/1200/800?random=3",
-    },
-    {
-      id: 4,
-      image: "https://picsum.photos/1200/800?random=4",
-    },
-    {
-      id: 5,
-      image: "https://picsum.photos/1200/800?random=5",
-    },
-  ];
 
   return (
     <div className="w-full flex justify-center items-center py-10">
