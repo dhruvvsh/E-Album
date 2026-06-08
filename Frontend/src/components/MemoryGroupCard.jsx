@@ -47,6 +47,7 @@ export function MemoryGroupCard({ group, tripId }) {
   const handleAddMorePhotos = async (newPhotos) => {
     const enriched = newPhotos.map((photo) => ({
       ...photo,
+      tripId: tripId,
       description: firstMemory.description,
       location: firstMemory.location || "",
     }))

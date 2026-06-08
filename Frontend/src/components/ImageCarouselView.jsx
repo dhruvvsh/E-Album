@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAppContext } from './AppContext.jsx'
 import { ImageCarousel } from './ImageCarousel.jsx'
 
+
 export function ImageCarouselView() {
   const { tripId, memorycardId } = useParams()
   const navigate = useNavigate()
@@ -36,7 +37,7 @@ export function ImageCarouselView() {
       </div>
     )
   }
-
+console.log('✅ TRIP FOUND:', trip);
   const tripMemories = trip.memories || []
   console.log('🖼️ TRIP MEMORIES:', tripMemories.length)
   console.log(
@@ -62,9 +63,11 @@ export function ImageCarouselView() {
   }
 
   const images = tripMemories.map((m) => ({
-    id: m. id,
+    id: m.id,
     image: m.image,
   }))
+  console.log('🔍 Trip IMAGES FOR CAROUSEL:', tripMemories)
+  console.log('🔍 IMAGES FOR CAROUSEL:', images)
   const [, memoryId] = memorycardId.split('_')
   const startIndex = tripMemories.findIndex((m) => m.id === memoryId)
 

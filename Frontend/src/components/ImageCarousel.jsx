@@ -19,6 +19,8 @@ export function ImageCarousel({ images, tripMemories, startIndex }) {
   const navigate = useNavigate();
   const { tripId, memorycardId } = useParams();
 
+  console.log("images :", images);
+  console.log(images.map((img) => img._id));
   return (
     <div className="w-full flex justify-center items-center py-10">
       <div className="w-full max-w-5xl">

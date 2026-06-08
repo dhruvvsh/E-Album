@@ -85,9 +85,9 @@ export function Header({ onSearch, searchQuery }) {
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex justify-center items-center h-40 border">
-                  <p>{user?.name}</p>
+              <DropdownMenuContent className="w-auto" align="end" forceMount>
+                <div className="flex justify-center items-center h-10 border">
+                  <p>{user?.username}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 

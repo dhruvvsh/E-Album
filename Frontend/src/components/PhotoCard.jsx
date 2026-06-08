@@ -16,8 +16,8 @@ export function PhotoCard({ photo, onClick, onLike }) {
       {/* Image */}
       <div className="aspect-square overflow-hidden">
         <ImageWithFallback
-          src={photo.url}
-          alt={photo.title}
+          src={photo.image}
+          alt={photo.description}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
         />
       </div>
@@ -26,8 +26,8 @@ export function PhotoCard({ photo, onClick, onLike }) {
       {isHovered && (
         <div className="absolute inset-0 bg-black/40 flex items-end p-3 transition-opacity duration-200">
           <div className="flex-1">
-            <h4 className="text-white mb-1">{photo.title}</h4>
-            <p className="text-white/70 text-sm">by {photo.photographer}</p>
+            <h4 className="text-white mb-1">{photo.description || 'Photo'}</h4>
+            {/* <p className="text-white/70 text-sm">by {photo.author?.name || 'Anonymous'}</p> */}
           </div>
           <div className="flex space-x-2">
             <Button

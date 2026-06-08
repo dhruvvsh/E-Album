@@ -1,6 +1,7 @@
 import Trip from "../models/tripModel.js";
 import Memory from "../models/memoriesModel.js";
-import cloudinary, {getPublicId} from "../utils/cloudinary.js";
+import cloudinary, { getPublicId } from "../utils/cloudinary.js";
+import TripInvite from "../models/tripInviteModel.js";
 // CREATE TRIP
 export const createTrip = async (req, res) => {
   try {
@@ -88,7 +89,7 @@ export const deleteTrip = async (req, res) => {
     }
     const publicId = getPublicId(trip.coverPhoto);
     trip.coverPhoto && (await cloudinary.uploader.destroy(publicId));
-   const memories = await Memory.find({ tripId: trip._id });
+    const memories = await Memory.find({ tripId: trip._id });
     for (const memory of memories) {
       const memoryPublicId = getPublicId(memory.image);
       memory.image && (await cloudinary.uploader.destroy(memoryPublicId));
@@ -98,5 +99,75 @@ export const deleteTrip = async (req, res) => {
     res.json({ message: "Trip deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
+  }
+
+};
+
+export const joinTrip = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const invite = await TripInvite.findOne({ token });
+
+    if (!invite) {
+      return res.status(400).json({
+        message: "Invalid invite",
+      });
+    }
+
+    if (invite.isUsed) {
+      return res.status(400).json({
+        message: "Invite already used",
+      });
+    }
+
+    // check expiry
+    if (invite.expiresAt < new Date()) {
+      return res.status(400).json({
+        message: "Invite expired",
+      });
+    }
+
+    // if (invite.email !== req.user.email) {
+    //   return res.status(403).json({
+    //     message: "This invitation belongs to another email",
+    //   });
+    // }
+
+    const trip = await Trip.findById(invite.trip);
+
+    if (!trip) {
+      return res.status(404).json({
+        message: "Trip not found",
+      });
+    }
+
+    // prevent duplicate participant
+    const alreadyParticipant = trip.participants.some(
+      (participantId) =>
+        participantId.toString() === req.user._id.toString()
+    );
+
+    if (alreadyParticipant) {
+      return res.status(400).json({
+        message: "You are already a participant in this trip",
+      });
+    }
+
+    trip.participants.push(req.user._id);
+    await trip.save();
+
+    invite.isUsed = true;
+    await invite.save();
+
+    res.status(200).json({
+      message: "Joined trip successfully",
+      trip,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server Error",
+      error: error.message,
+    });
   }
 };

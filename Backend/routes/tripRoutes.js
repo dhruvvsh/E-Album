@@ -5,14 +5,24 @@ import {
   getTripById,
   updateTrip,
   deleteTrip,
+  joinTrip,
 } from "../controllers/tripControllers.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { inviteParticipant } from "../controllers/inviteParticipant.js";
 
 const triprouter = express.Router();
-// Trip routes
+
+// Create / List
 triprouter.post("/", protect, createTrip);
 triprouter.get("/", protect, getTrips);
+
+// Invite & Join
+triprouter.post("/join/:token", protect, joinTrip);
+triprouter.post("/:id/invite", protect, inviteParticipant);
+
+// Trip by ID
 triprouter.get("/:id", protect, getTripById);
 triprouter.put("/:id", protect, updateTrip);
 triprouter.delete("/:id", protect, deleteTrip);
+
 export default triprouter;

@@ -1,34 +1,50 @@
-import { use, useState } from 'react'
-import { Button } from '../ui/button.jsx'
-import { Input } from '../ui/input.jsx'
-import { Label } from '../ui/label.jsx'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card.jsx'
-import { useAuth } from '../auth/AuthContext.jsx'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
-
+import { use, useState } from "react";
+import { Button } from "../ui/button.jsx";
+import { Input } from "../ui/input.jsx";
+import { Label } from "../ui/label.jsx";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card.jsx";
+import { useAuth } from "../auth/AuthContext.jsx";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
 export const Login = ({ onSwitchToSignup }) => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const { login, isLoading } = useAuth( )
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const { login, isLoading } = useAuth();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    
+    e.preventDefault();
+    setError("");
+
     if (!email || !password) {
-      setError('Please fill in all fields')
-      return
+      setError("Please fill in all fields");
+      return;
     }
 
-    const result = await login(email, password)
+    const result = await login(email, password);
+
     if (!result.success) {
-      setError(result.error)
+      setError(result.error);
+      return;
     }
-  }
+
+    const pendingInvite = localStorage.getItem("pendingInvite");
+
+    if (pendingInvite) {
+      localStorage.removeItem("pendingInvite");
+
+      navigate(`/join-trip/${pendingInvite}`);
+    } else {
+      navigate("/");
+    }
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -45,7 +61,7 @@ export const Login = ({ onSwitchToSignup }) => {
               {error}
             </div>
           )}
-          
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
@@ -69,7 +85,7 @@ export const Login = ({ onSwitchToSignup }) => {
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -83,21 +99,21 @@ export const Login = ({ onSwitchToSignup }) => {
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 disabled={isLoading}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isLoading}
-          >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Sign In"}
           </Button>
 
           <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Don't have an account?{" "}
             <button
               type="button"
               onClick={onSwitchToSignup}
@@ -110,5 +126,5 @@ export const Login = ({ onSwitchToSignup }) => {
         </form>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
