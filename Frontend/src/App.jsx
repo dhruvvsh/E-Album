@@ -9,6 +9,8 @@ import Layout from "./components/Layout.jsx";
 import { ImageCarouselView } from "./components/ImageCarouselView";
 import { PhotoGrid } from "./components/PhotoGrid.jsx";
 import JoinTrip from "./components/JoinTrip";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, Zoom } from 'react-toastify'
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,6 +23,20 @@ export default function App() {
     );
   }
   return (
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Zoom}
+        />
     <Routes>
       {/* Public auth route */}
       <Route
@@ -60,5 +76,6 @@ export default function App() {
         element={<Navigate to={isAuthenticated ? "/" : "/auth"} />}
       />
     </Routes>
+    </>
   );
 }

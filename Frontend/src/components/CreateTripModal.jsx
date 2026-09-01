@@ -7,6 +7,7 @@ import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import { Switch } from './ui/switch'
 import { useAppContext } from './AppContext'
+import { toast } from "react-toastify";
 
 export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
 
@@ -21,61 +22,92 @@ export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
     isPrivate: false
   })
 
-  const handleSubmit = (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    if (!formData.name || !formData.startDate) {
+
+    // Validation
+    if (!formData.name.trim() || !formData.startDate) {
+      toast.error('Please fill in all required fields.')
       return
     }
 
-    // Mock participants for demo
-    // const mockParticipants = [
-    //   { id: '1', name: 'You', email: 'you@example.com', avatar: '' },
-    //   { id: '2', name: 'Alex Chen', email: 'alex@example.com', avatar: '' },
-    //   { id: '3', name: 'Sarah Johnson', email: 'sarah@example.com', avatar: '' }
-    // ]
+    // Don't submit while image is uploading
+    if (uploading) {
+      toast.warning('Please wait for the image upload to finish.')
+      return
+    }
 
-    onCreateTrip({
-      tripName: formData.name,
-      description: formData.description,
-      coverPhoto: formData.coverPhoto || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
-      startDate: formData.startDate,
-      endDate: formData.endDate || formData.startDate,
-      isPrivate: formData.isPrivate,
-    })
+    try {
+      await onCreateTrip({
+        tripName: formData.name,
+        description: formData.description,
+        coverPhoto:
+          formData.coverPhoto ||
+          'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
+        startDate: formData.startDate,
+        endDate: formData.endDate || formData.startDate,
+        isPrivate: formData.isPrivate
+      })
 
-    // Reset form
-    setFormData({
-      name: '',
-      description: '',
-      coverPhoto: '',
-      startDate: '',
-      endDate: '',
-      isPrivate: false,
-      participants: []
-    })
-    
-    onClose()
+      toast.success('Trip created successfully!')
+
+      // Reset form
+      setFormData({
+        name: '',
+        description: '',
+        coverPhoto: '',
+        startDate: '',
+        endDate: '',
+        isPrivate: false
+      })
+
+      onClose()
+
+    } catch (error) {
+      console.error('Trip creation failed:', error)
+
+      toast.error(
+        error?.response?.data?.message ||
+        'Failed to create trip. Please try again.'
+      )
+    }
   }
 
    
 
-  const handleFileChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
 
-  setUploading(true);
-  try {
-    const isVideo = file.type.startsWith("video/");
-    const url = await uploadToCloudinary(file, isVideo ? "video" : "image");
-    // const url = await uploadToCloudinary(file);
-    setFormData({ ...formData, coverPhoto: url }); 
-  } catch (err) {
-    console.error("Upload failed", err);
-  } finally {
-    setUploading(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+
+    if (!file) return
+
+    try {
+      setUploading(true)
+
+      const isVideo = file.type.startsWith('video/')
+
+      const url = await uploadToCloudinary(
+        file,
+        isVideo ? 'video' : 'image'
+      )
+
+      setFormData((prev) => ({
+        ...prev,
+        coverPhoto: url
+      }))
+
+      toast.success('Cover photo uploaded successfully!')
+
+    } catch (error) {
+      console.error('Upload failed:', error)
+
+      toast.error('Failed to upload cover photo.')
+
+    } finally {
+      setUploading(false)
+    }
   }
-};
 
   const handleButtonClick = () => {
 
