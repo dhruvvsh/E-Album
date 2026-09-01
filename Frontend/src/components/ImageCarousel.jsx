@@ -20,7 +20,7 @@ export function ImageCarousel({ images, tripMemories, startIndex }) {
   const { tripId, memorycardId } = useParams();
 
   console.log("images :", images);
-  console.log(images.map((img) => img._id));
+  console.log(images.map((img) => img.id));
   return (
     <div className="w-full flex justify-center items-center py-10">
       <div className="w-full max-w-5xl">
@@ -45,7 +45,15 @@ export function ImageCarousel({ images, tripMemories, startIndex }) {
                       className="w-full h-full object-cover"
                     />
                     <button
-                      onClick={() => handleToggleFavorite(post.id)}
+                      onClick={() => {
+                        handleToggleFavorite(post.id);
+
+                        setIsFavorited((prev) =>
+                          prev.includes(post.id)
+                            ? prev.filter((id) => id !== post.id)
+                            : [...prev, post.id]
+                        );
+                      }}
                       className={`absolute bottom-6 right-6 p-3 rounded-full transition-all duration-300 transform hover:scale-125 backdrop-blur-md ${isFavorited.includes(post.id)
                         ? 'bg-red-500/90 text-white shadow-lg shadow-red-500/50 scale-110'
                         : 'bg-white/20 text-white hover:bg-white/40'
@@ -53,7 +61,7 @@ export function ImageCarousel({ images, tripMemories, startIndex }) {
                     >
                       <Heart
                         size={26}
-                        className={isFavorited ? 'fill-current' : ''}
+                        className={isFavorited.includes(post.id) ? 'fill-current' : ''}
                       />
                     </button>
                   </div>

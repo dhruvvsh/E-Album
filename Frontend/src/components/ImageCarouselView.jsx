@@ -42,7 +42,7 @@ console.log('✅ TRIP FOUND:', trip);
   console.log('🖼️ TRIP MEMORIES:', tripMemories.length)
   console.log(
     '📸 MEMORY IMAGES:',
-    tripMemories.map((m) => ({ id: m.id, image: m.image ? '✅' : '❌' }))
+    tripMemories.map((m) => ({ id: m._id, image: m.image ? '✅' : '❌' }))
   )
 
   if (tripMemories.length === 0) {
@@ -63,7 +63,7 @@ console.log('✅ TRIP FOUND:', trip);
   }
 
   const images = tripMemories.map((m) => ({
-    id: m.id,
+    id: m._id ? m._id : m.id,
     image: m.image,
   }))
   console.log('🔍 Trip IMAGES FOR CAROUSEL:', tripMemories)
