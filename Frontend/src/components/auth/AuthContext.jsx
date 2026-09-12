@@ -16,6 +16,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoggingIn, setIsLoggingIn] = useState(false) 
   const[isAuthenticated,setIsAuthenticated]=useState(false);
 
   // Check for stored user on mount
@@ -38,7 +39,7 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (email, password) => {
     try {
-      setIsLoading(true);
+      setIsLoggingIn(true);
 
       const res = await axios.post(`${API_URL}/users/login`, {
         email,
@@ -56,12 +57,13 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       setIsAuthenticated(false);
+       console.error("Login error:", error);
       return {
         success: false,
         error: error.response?.data?.message || "Login failed",
       };
     } finally {
-      setIsLoading(false);
+      setIsLoggingIn(false);
     }
   }
 

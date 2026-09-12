@@ -11,11 +11,14 @@ import {
 } from "../ui/card.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export const Login = ({ onSwitchToSignup }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
   const [error, setError] = useState("");
   const { login, isLoading } = useAuth();
 
@@ -29,9 +32,11 @@ export const Login = ({ onSwitchToSignup }) => {
     }
 
     const result = await login(email, password);
-
+    console.log('result:', result); 
     if (!result.success) {
+      console.log('About to show toast:', result.error); 
       setError(result.error);
+      toast.error(result.error || "Login failed. Please try again.");
       return;
     }
 

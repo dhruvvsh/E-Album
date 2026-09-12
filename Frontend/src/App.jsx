@@ -10,7 +10,7 @@ import { ImageCarouselView } from "./components/ImageCarouselView";
 import { PhotoGrid } from "./components/PhotoGrid.jsx";
 import JoinTrip from "./components/JoinTrip";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer, Zoom } from 'react-toastify'
+import { ToastContainer, Zoom , toast} from 'react-toastify'
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -37,6 +37,7 @@ export default function App() {
         theme="light"
         transition={Zoom}
         />
+
     <Routes>
       {/* Public auth route */}
       <Route
