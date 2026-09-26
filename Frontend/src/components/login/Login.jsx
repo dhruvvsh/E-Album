@@ -1,26 +1,17 @@
-import { use, useState } from "react";
-import { Button } from "../ui/button.jsx";
-import { Input } from "../ui/input.jsx";
-import { Label } from "../ui/label.jsx";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../ui/card.jsx";
-import { useAuth } from "../auth/AuthContext.jsx";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { useState } from "react";
+import { Loader2, Mail } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { Button } from "../ui/button.jsx";
+import { useAuth } from "../auth/AuthContext.jsx";
+import { FormError, PasswordField, TextField } from "../auth/fields.jsx";
 
 export const Login = ({ onSwitchToSignup }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [error, setError] = useState("");
-  const { login, isLoading } = useAuth();
+  const { login, isLoggingIn } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,9 +23,7 @@ export const Login = ({ onSwitchToSignup }) => {
     }
 
     const result = await login(email, password);
-    console.log('result:', result); 
     if (!result.success) {
-      console.log('About to show toast:', result.error); 
       setError(result.error);
       toast.error(result.error || "Login failed. Please try again.");
       return;
@@ -44,7 +33,6 @@ export const Login = ({ onSwitchToSignup }) => {
 
     if (pendingInvite) {
       localStorage.removeItem("pendingInvite");
-
       navigate(`/join-trip/${pendingInvite}`);
     } else {
       navigate("/");
@@ -52,84 +40,64 @@ export const Login = ({ onSwitchToSignup }) => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle>Welcome Back</CardTitle>
-        <CardDescription>
-          Sign in to your account to continue sharing memories
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-              {error}
-            </div>
+    <div className="animate-fade-up">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
+        <p className="mt-2 text-muted-foreground">
+          Sign in to keep sharing your travel memories.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <FormError>{error}</FormError>
+
+        <TextField
+          id="email"
+          label="Email"
+          icon={Mail}
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isLoggingIn}
+          required
+        />
+
+        <PasswordField
+          id="password"
+          label="Password"
+          autoComplete="current-password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isLoggingIn}
+          required
+        />
+
+        <Button type="submit" size="lg" className="w-full" disabled={isLoggingIn}>
+          {isLoggingIn ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            "Sign in"
           )}
+        </Button>
+      </form>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
-                disabled={isLoading}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10"
-                disabled={isLoading}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                disabled={isLoading}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
-          </Button>
-
-          <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <button
-              type="button"
-              onClick={onSwitchToSignup}
-              className="text-primary hover:underline"
-              disabled={isLoading}
-            >
-              Sign up
-            </button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+      <p className="mt-8 text-center text-sm text-muted-foreground">
+        Don't have an account?{" "}
+        <button
+          type="button"
+          onClick={onSwitchToSignup}
+          className="font-semibold text-primary hover:underline"
+          disabled={isLoggingIn}
+        >
+          Create one
+        </button>
+      </p>
+    </div>
   );
 };

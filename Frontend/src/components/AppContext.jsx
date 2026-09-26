@@ -1,8 +1,11 @@
 import { createContext, useContext, useState, useMemo, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import { useAuth } from './auth/AuthContext.jsx'
-import axios from 'axios'
+import api, { getErrorMessage } from '@/lib/api'
+import { toWebImageUrl } from '@/lib/media'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001'
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dvgywczai'
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'E-album'
 
 const AppContext = createContext(null)
 
@@ -14,31 +17,30 @@ export const useAppContext = () => {
   return context
 }
 
-
-
 const fetchTrips = async () => {
   try {
-    const res = await axios.get(`${API_URL}/trips`)
-    return res.data || [];
+    const res = await api.get('/trips')
+    return res.data || []
   } catch (error) {
-    console.error('Error fetching trips:', error);
+    toast.error(getErrorMessage(error, 'Failed to load trips'))
+    return []
   }
 }
 
 const fetchMemories = async (tripId) => {
   try {
-    const res = await axios.get(`${API_URL}/memories`);
-    return res.data || [];
+    const res = await api.get(`/memories/trip/${tripId}`)
+    return res.data || []
   } catch (error) {
-    console.error('Error fetching memories for trip:', error);
-    return [];
+    toast.error(getErrorMessage(error, 'Failed to load memories'))
+    return []
   }
 }
 
 const normalizeMemory = (memory, currentUserId) => ({
   id: memory._id,
   tripId: memory.tripId,
-  image: memory.image,
+  image: toWebImageUrl(memory.image),
   description: memory.description, // For MemoryGroupCard
   caption: memory.caption || memory.description, // For carousel
   location: memory.location,
@@ -48,29 +50,18 @@ const normalizeMemory = (memory, currentUserId) => ({
   isFavoritedByUser: memory.isFavorite?.includes(currentUserId) || false,
 })
 
-
-const mergeTripsWithMemories = (trips, memories, userId) => {
-  const memoryMap = {}
-
-  memories.forEach(memory => {
-    const tripId = memory.tripId
-    if (!memoryMap[tripId]) memoryMap[tripId] = []
-    memoryMap[tripId].push(normalizeMemory(memory, userId))
-  })
-
-  return trips.map(trip => ({
-    id: trip._id,
-    name: trip.tripName,
-    description: trip.description,
-    coverPhoto: trip.coverPhoto,
-    startDate: trip.startDate,
-    endDate: trip.endDate,
-    isPrivate: trip.isPrivate,
-    createdBy: trip.createdBy,
-    participants: trip.participants,
-    memories: memoryMap[trip._id] || []
-  }))
-}
+const normalizeTrip = (trip, memories, userId) => ({
+  id: trip._id,
+  name: trip.tripName,
+  description: trip.description,
+  coverPhoto: toWebImageUrl(trip.coverPhoto),
+  startDate: trip.startDate,
+  endDate: trip.endDate,
+  isPrivate: trip.isPrivate,
+  createdBy: trip.createdBy,
+  participants: trip.participants,
+  memories: memories.map((memory) => normalizeMemory(memory, userId)),
+})
 
 export const AppProvider = ({ children }) => {
   const { user, isLoading } = useAuth()
@@ -79,23 +70,27 @@ export const AppProvider = ({ children }) => {
   const [isCreateTripModalOpen, setIsCreateTripModalOpen] = useState(false)
   const [selectedMemory, setSelectedMemory] = useState(null)
   const [trips, setTrips] = useState([])
+  const [isLoadingTrips, setIsLoadingTrips] = useState(true)
 
   // Initialize trips when user is available
   useEffect(() => {
     if (!user || isLoading) return
 
     const loadData = async () => {
+      setIsLoadingTrips(true)
       try {
-        const [tripsData, memoriesData] = await Promise.all([
-          fetchTrips(),
-          fetchMemories()
-        ])
-        const mergedData = mergeTripsWithMemories(tripsData, memoriesData, user._id)
-        setTrips(mergedData)
-      } catch (error) {
-        console.error('Error loading data:', error);
+        const tripsData = await fetchTrips()
+        const memoriesByTrip = await Promise.all(
+          tripsData.map((trip) => fetchMemories(trip._id))
+        )
+        setTrips(
+          tripsData.map((trip, index) =>
+            normalizeTrip(trip, memoriesByTrip[index], user._id)
+          )
+        )
+      } finally {
+        setIsLoadingTrips(false)
       }
-
     }
     loadData()
   }, [user, isLoading])
@@ -105,7 +100,8 @@ export const AppProvider = ({ children }) => {
     if (!trips.length) return []
     return trips.flatMap(trip => trip.memories)
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-  })
+  }, [trips])
+
   // Get favorite memories
   const favoriteMemories = useMemo(() => {
     if (!trips.length || !user) return []
@@ -133,34 +129,29 @@ export const AppProvider = ({ children }) => {
 
     const query = searchQuery.toLowerCase()
     return trips.filter(trip =>
-      trip.name.toLowerCase().includes(query) ||
-      trip.description.toLowerCase().includes(query)
+      trip.name?.toLowerCase().includes(query) ||
+      trip.description?.toLowerCase().includes(query)
     )
   }, [trips, searchQuery])
 
   const handleCreateTrip = async (tripData) => {
-    try {
-      const res = await axios.post(`${API_URL}/trips`, tripData);
-      const newTrip = res.data;
-      setTrips(prevTrips => [{ ...newTrip, id: newTrip._id, memories: [] }, ...prevTrips])
-    } catch (error) {
-      console.error('Error creating trip:', error);
-    }
+    const res = await api.post('/trips', tripData)
+    setTrips((prevTrips) => [normalizeTrip(res.data, [], user._id), ...prevTrips])
   }
 
   const handleDeleteTrip = async (tripId) => {
-    try{
-      await axios.delete(`${API_URL}/trips/${tripId}`);
-      setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripId));
+    try {
+      await api.delete(`/trips/${tripId}`)
+      setTrips((prevTrips) => prevTrips.filter((trip) => trip.id !== tripId))
+      toast.success('Trip deleted')
     } catch (error) {
-      console.error('Error deleting trip:', error);
+      toast.error(getErrorMessage(error, 'Failed to delete trip'))
     }
   }
 
   const handleToggleFavorite = async (memoryId) => {
     try {
-      console.log('⭐ FAVORITE TOGGLE:', memoryId)
-      const res = await axios.put(`${API_URL}/memories/${memoryId}/favorite`)
+      const res = await api.put(`/memories/${memoryId}/favorite`)
 
       setTrips((prevTrips) =>
         prevTrips.map((trip) => ({
@@ -176,91 +167,83 @@ export const AppProvider = ({ children }) => {
           ),
         }))
       )
-
-      console.log('Favorite toggled')
     } catch (error) {
-      console.error('Error toggling favorite:', error)
+      toast.error(getErrorMessage(error, 'Failed to update favorite'))
     }
   }
 
-  // const handleMemoryClick = (memory) => {
-  //   setSelectedMemory(memory)
-  //   setIsMemoryModalOpen(true)
-  // }
   const handleAddMemories = async (newMemories) => {
     try {
-      const res = await axios.post(`${API_URL}/memories`, newMemories)
-      const newMemory = res.data
+      const res = await api.post('/memories', newMemories)
+      const newMemory = normalizeMemory(res.data, user._id)
 
       setTrips((prevTrips) =>
-        prevTrips.map((trip) => {
-          if (trip.id === newMemory.tripId) {
-            return {
-              ...trip,
-              memories: [...trip.memories, newMemory],
-            }
-          }
-          return trip
-        })
+        prevTrips.map((trip) =>
+          trip.id === newMemory.tripId
+            ? { ...trip, memories: [...trip.memories, newMemory] }
+            : trip
+        )
       )
+      return true
     } catch (error) {
-      console.error('Error adding memories:', error)
+      toast.error(getErrorMessage(error, 'Failed to add memory'))
+      return false
     }
   }
 
   const handleDeleteMemoryGroup = async (memoryIds) => {
     try {
-      console.log('🗑️ DELETE MEMORY:', memoryIds)
-      await axios.delete(`${API_URL}/memories/group`, { data: { memoryIds } })
+      await api.delete('/memories/group', { data: { memoryIds } })
 
       setTrips((prevTrips) =>
         prevTrips.map((trip) => ({
           ...trip,
-          memories: trip.memories.filter((m) => !memoryIds.includes(m._id)),
+          memories: trip.memories.filter((m) => !memoryIds.includes(m.id)),
         }))
       )
-
-      console.log('✅ MemoryGroup deleted')
+      toast.success('Memories deleted')
     } catch (error) {
-      console.error('Error deleting memory group:', error)
+      toast.error(getErrorMessage(error, 'Failed to delete memories'))
     }
   }
 
   const handleDeleteMemory = async (memoryId) => {
     try {
-      console.log("🗑️ DELETE MEMORY:", memoryId);
-      await axios.delete(`${API_URL}/memories/${memoryId}`);
+      await api.delete(`/memories/${memoryId}`)
       setTrips((prevTrips) =>
         prevTrips.map((trip) => ({
           ...trip,
           memories: trip.memories.filter((m) => m.id !== memoryId),
-        })),
-      );
-      console.log("✅ Memory deleted");
+        }))
+      )
+      toast.success('Memory deleted')
     } catch (error) {
-      console.error("Error deleting memory:", error);
+      toast.error(getErrorMessage(error, 'Failed to delete memory'))
     }
-  };
+  }
 
-const uploadToCloudinary = async (file) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", "E-album");
+  const uploadToCloudinary = async (file, resourceType = 'image') => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
 
-  const res = await fetch(
-    "https://api.cloudinary.com/v1_1/dvgywczai/image/upload",
-    { method: "POST", body: formData },
-  );
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
+      { method: 'POST', body: formData },
+    )
 
-  const data = await res.json();
-  return data.secure_url;
-};
-
+    const data = await res.json()
+    if (!res.ok || !data.secure_url) {
+      throw new Error(data.error?.message || 'Upload failed')
+    }
+    return toWebImageUrl(data.secure_url)
+  }
 
   const value = {
     searchQuery,
     setSearchQuery,
     trips,
+    isLoadingTrips,
     filteredTrips,
     allMemories,
     filteredMemories,
@@ -269,10 +252,7 @@ const uploadToCloudinary = async (file) => {
     selectedMemory,
     favoriteMemories,
     setSelectedMemory,
-    // isMemoryModalOpen,
-    // setIsMemoryModalOpen,
     handleAddMemories,
-    // selectedPhoto,
     handleCreateTrip,
     handleDeleteTrip,
     handleToggleFavorite,

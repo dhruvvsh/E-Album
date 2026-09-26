@@ -30,6 +30,7 @@ const { tripId , albumId} = useParams()
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Close"
             className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
             onClick={onClose}
           >
@@ -41,6 +42,7 @@ const { tripId , albumId} = useParams()
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Previous photo"
               className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-white/20"
               onClick={onPrevious}
             >
@@ -52,6 +54,7 @@ const { tripId , albumId} = useParams()
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Next photo"
               className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-white/20"
               onClick={onNext}
             >

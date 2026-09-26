@@ -1,72 +1,56 @@
-import { Heart, Download, Share2 } from 'lucide-react'
-import { Button } from './ui/button'
+import { Heart, MapPin } from 'lucide-react'
 import { ImageWithFallback } from './figma/ImageWithFallback'
-import { useState } from 'react'
+import { getDisplayName } from '@/lib/format'
+import { isVideoUrl } from '@/lib/media'
 
 export function PhotoCard({ photo, onClick, onLike }) {
-  const [isHovered, setIsHovered] = useState(false)
+  const isFavorite = photo.isFavoritedByUser
 
   return (
-    <div 
-      className="group relative bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
-    >
-      {/* Image */}
-      <div className="aspect-square overflow-hidden">
+    <div className="group relative mb-4 break-inside-avoid overflow-hidden rounded-2xl border bg-muted shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
+      {isVideoUrl(photo.image) ? (
+        <video src={photo.image} muted className="block w-full object-cover" />
+      ) : (
         <ImageWithFallback
           src={photo.image}
-          alt={photo.description}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+          alt={photo.description || 'Favorite photo'}
+          className="block w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
+      )}
+
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-1 p-3 text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:opacity-100">
+        {photo.description && <p className="line-clamp-2 text-sm font-semibold">{photo.description}</p>}
+        <p className="mt-0.5 flex items-center gap-1 text-xs text-white/75">
+          {photo.location && (
+            <>
+              <MapPin className="h-3 w-3" />
+              {photo.location} ·{' '}
+            </>
+          )}
+          {getDisplayName(photo.author)}
+        </p>
       </div>
 
-      {/* Overlay */}
-      {isHovered && (
-        <div className="absolute inset-0 bg-black/40 flex items-end p-3 transition-opacity duration-200">
-          <div className="flex-1">
-            <h4 className="text-white mb-1">{photo.description || 'Photo'}</h4>
-            {/* <p className="text-white/70 text-sm">by {photo.author?.name || 'Anonymous'}</p> */}
-          </div>
-          <div className="flex space-x-2">
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 bg-white/20 hover:bg-white/30 border-0"
-              onClick={(e) => {
-                e.stopPropagation()
-                onLike(photo.id)
-              }}
-            >
-              <Heart className={`h-4 w-4 ${photo.isLiked ? 'fill-red-500 text-red-500' : 'text-white'}`} />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 bg-white/20 hover:bg-white/30 border-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Share2 className="h-4 w-4 text-white" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 bg-white/20 hover:bg-white/30 border-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Download className="h-4 w-4 text-white" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={`Open ${photo.description || 'photo'}`}
+        className="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+      />
 
-      {/* Like indicator */}
-      {photo.isLiked && !isHovered && (
-        <div className="absolute top-2 right-2">
-          <Heart className="h-5 w-5 fill-red-500 text-red-500" />
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={onLike}
+        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        aria-pressed={isFavorite}
+        className={`absolute right-2.5 top-2.5 z-[2] flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-md transition-all hover:scale-110 ${
+          isFavorite ? 'bg-red-500/90 text-white' : 'bg-black/35 text-white hover:bg-black/55'
+        }`}
+      >
+        <Heart className={`h-[18px] w-[18px] ${isFavorite ? 'fill-current' : ''}`} />
+      </button>
     </div>
   )
 }

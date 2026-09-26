@@ -1,5 +1,5 @@
- import { createContext, useContext, useState, useEffect } from 'react'
- import axios from 'axios';
+import { createContext, useContext, useState, useEffect } from 'react'
+import api from '@/lib/api'
 
 const AuthContext = createContext()
 
@@ -10,13 +10,11 @@ export const useAuth = () => {
   }
   return context
 }
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001'
-  console.log("API URL:", API_URL);
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isLoggingIn, setIsLoggingIn] = useState(false) 
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [isSigningUp, setIsSigningUp] = useState(false)
   const[isAuthenticated,setIsAuthenticated]=useState(false);
 
   // Check for stored user on mount
@@ -27,7 +25,6 @@ export const AuthProvider = ({ children }) => {
       try {
         setUser(JSON.parse(storedUser))
         setIsAuthenticated(true);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } catch (error) {
         console.error('Error parsing stored user:', error)
         localStorage.removeItem('tripMemoryUser')
@@ -41,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoggingIn(true);
 
-      const res = await axios.post(`${API_URL}/users/login`, {
+      const res = await api.post('/users/login', {
         email,
         password,
       });
@@ -51,7 +48,6 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       localStorage.setItem("tripMemoryUser", JSON.stringify(user));
       localStorage.setItem("Token", token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setIsAuthenticated(true);
 
       return { success: true };
@@ -69,50 +65,40 @@ export const AuthProvider = ({ children }) => {
 
   // Signup function
   const signup = async (username, email, password) => {
-    try{
-    setIsLoading(true)
-    
-      // Basic validation
     if (!username || !email || !password) {
-      setIsLoading(false)
       return { success: false, error: 'All fields are required' }
     }
-    
+
     if (password.length < 6) {
-      setIsLoading(false)
       return { success: false, error: 'Password must be at least 6 characters' }
     }
 
-    //  API call 
-   const res= await axios.post(`${API_URL}/users/register`, {
-      username,
-      email,
-      password,
-    });
-       
-    const {user, token}=res.data;
-    
-    setUser(user)
-    localStorage.setItem('tripMemoryUser', JSON.stringify(user))
-    localStorage.setItem('Token', token)
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    setIsAuthenticated(true);
+    try {
+      setIsSigningUp(true)
 
-    return {
-       success: true 
+      const res = await api.post('/users/register', {
+        username,
+        email,
+        password,
+      })
 
-    }
+      const { user, token } = res.data
 
+      setUser(user)
+      localStorage.setItem('tripMemoryUser', JSON.stringify(user))
+      localStorage.setItem('Token', token)
+      setIsAuthenticated(true)
 
-  }  catch(error){
-    setIsAuthenticated(false);
-      return { 
-        success:false,
-        error: error.response?.data?.message || 'Signup failed' 
+      return { success: true }
+    } catch (error) {
+      setIsAuthenticated(false)
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Signup failed',
       }
     } finally {
-      setIsLoading(false)
-    }    
+      setIsSigningUp(false)
+    }
   }
 
   const logout = () => {
@@ -120,12 +106,13 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     localStorage.removeItem('tripMemoryUser')
     localStorage.removeItem('Token')
-    delete axios.defaults.headers.common['Authorization']
   }
 
   const value = {
     user,
     isLoading,
+    isLoggingIn,
+    isSigningUp,
     login,
     signup,
     logout,

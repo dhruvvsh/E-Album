@@ -1,36 +1,32 @@
 import { useState } from 'react'
+import { Loader2, Mail, User } from 'lucide-react'
 import { Button } from '../ui/button.jsx'
-import { Input } from '../ui/input.jsx'
-import { Label } from '../ui/label.jsx'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
+import { FormError, PasswordField, TextField } from '../auth/fields.jsx'
 
 export const Signup = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
-  const { signup, isLoading } = useAuth()
+  const { signup, isSigningUp } = useAuth()
 
   const handleChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }))
   }
- console.log("formdata",formData);
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    
+
     const { username, email, password, confirmPassword } = formData
-    
+
     if (!username || !email || !password || !confirmPassword) {
       setError('Please fill in all fields')
       return
@@ -53,130 +49,88 @@ export const Signup = ({ onSwitchToLogin }) => {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle>Create Account</CardTitle>
-        <CardDescription>
-          Join Trip Memory to start sharing your adventures
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-              {error}
-            </div>
+    <div className="animate-fade-up">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold tracking-tight">Create your account</h2>
+        <p className="mt-2 text-muted-foreground">
+          Start collecting memories with the people you travel with.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <FormError>{error}</FormError>
+
+        <TextField
+          id="username"
+          label="Username"
+          icon={User}
+          autoComplete="username"
+          placeholder="Choose a username"
+          value={formData.username}
+          onChange={handleChange}
+          disabled={isSigningUp}
+          required
+        />
+
+        <TextField
+          id="email"
+          label="Email"
+          icon={Mail}
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={formData.email}
+          onChange={handleChange}
+          disabled={isSigningUp}
+          required
+        />
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <PasswordField
+            id="password"
+            label="Password"
+            autoComplete="new-password"
+            placeholder="Min. 6 characters"
+            value={formData.password}
+            onChange={handleChange}
+            disabled={isSigningUp}
+            required
+          />
+          <PasswordField
+            id="confirmPassword"
+            label="Confirm"
+            autoComplete="new-password"
+            placeholder="Repeat password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            disabled={isSigningUp}
+            required
+          />
+        </div>
+
+        <Button type="submit" size="lg" className="w-full" disabled={isSigningUp}>
+          {isSigningUp ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            'Create account'
           )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="username">Full Name</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Enter your full name"
-                value={formData.username}
-                onChange={handleChange}
-                className="pl-10"
-                disabled={isLoading}
-                required
-              />
-            </div>
-          </div>
+        </Button>
+      </form>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                className="pl-10"
-                disabled={isLoading}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Create a password"
-                value={formData.password}
-                onChange={handleChange}
-                className="pl-10 pr-10"
-                disabled={isLoading}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                disabled={isLoading}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="pl-10 pr-10"
-                disabled={isLoading}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                disabled={isLoading}
-              >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isLoading}
-          >
-            {isLoading ? 'Creating Account...' : 'Create Account'}
-          </Button>
-
-          <div className="text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="text-primary hover:underline"
-              disabled={isLoading}
-            >
-              Sign in
-            </button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+      <p className="mt-8 text-center text-sm text-muted-foreground">
+        Already have an account?{' '}
+        <button
+          type="button"
+          onClick={onSwitchToLogin}
+          className="font-semibold text-primary hover:underline"
+          disabled={isSigningUp}
+        >
+          Sign in
+        </button>
+      </p>
+    </div>
   )
 }

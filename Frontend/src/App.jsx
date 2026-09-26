@@ -10,15 +10,16 @@ import { ImageCarouselView } from "./components/ImageCarouselView";
 import { PhotoGrid } from "./components/PhotoGrid.jsx";
 import JoinTrip from "./components/JoinTrip";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer, Zoom , toast} from 'react-toastify'
+import { ToastContainer, Zoom } from 'react-toastify'
+import { Loader2 } from "lucide-react";
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
   const pendingInvite = localStorage.getItem("pendingInvite");
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
+      <div className="app-canvas flex h-screen items-center justify-center">
+        <Loader2 className="h-7 w-7 animate-spin text-primary" aria-label="Loading" />
       </div>
     );
   }
@@ -26,8 +27,8 @@ export default function App() {
     <>
       <ToastContainer
         position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
+        autoClose={4000}
+        hideProgressBar
         newestOnTop={false}
         closeOnClick={false}
         rtl={false}

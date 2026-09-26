@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Calendar, Upload, Users, X } from 'lucide-react'
+import { ImagePlus, Loader2, Lock, X } from 'lucide-react'
+import { toast } from 'react-toastify'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
 import { Input } from './ui/input'
@@ -7,246 +8,236 @@ import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import { Switch } from './ui/switch'
 import { useAppContext } from './AppContext'
-import { toast } from "react-toastify";
+import { getErrorMessage } from '@/lib/api'
+
+const DEFAULT_COVER = 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800'
+
+const EMPTY_TRIP = {
+  name: '',
+  description: '',
+  coverPhoto: '',
+  startDate: '',
+  endDate: '',
+  isPrivate: false,
+}
 
 export function CreateTripModal({ isOpen, onClose, onCreateTrip }) {
+  const { uploadToCloudinary } = useAppContext()
+  const [uploading, setUploading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [formData, setFormData] = useState(EMPTY_TRIP)
 
-  const {uploadToCloudinary} = useAppContext();
-  const[uploading,setUploading]= useState(false);
-  const [formData, setFormData] = useState({
-    tripname: '',
-    description: '',
-    coverPhoto: '',
-    startDate: '',
-    endDate: '',
-    isPrivate: false
-  })
+  const update = (field) => (e) => setFormData((prev) => ({ ...prev, [field]: e.target.value }))
 
- const handleSubmit = async (e) => {
+  const resetAndClose = () => {
+    if (submitting) return
+    setFormData(EMPTY_TRIP)
+    setIsDragging(false)
+    onClose()
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Validation
-    if (!formData.name.trim() || !formData.startDate) {
+    if (!formData.name?.trim() || !formData.description?.trim() || !formData.startDate) {
       toast.error('Please fill in all required fields.')
       return
     }
 
-    // Don't submit while image is uploading
     if (uploading) {
       toast.warning('Please wait for the image upload to finish.')
       return
     }
 
     try {
+      setSubmitting(true)
       await onCreateTrip({
-        tripName: formData.name,
-        description: formData.description,
-        coverPhoto:
-          formData.coverPhoto ||
-          'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
+        tripName: formData.name.trim(),
+        description: formData.description.trim(),
+        coverPhoto: formData.coverPhoto || DEFAULT_COVER,
         startDate: formData.startDate,
         endDate: formData.endDate || formData.startDate,
-        isPrivate: formData.isPrivate
+        isPrivate: formData.isPrivate,
       })
 
       toast.success('Trip created successfully!')
-
-      // Reset form
-      setFormData({
-        name: '',
-        description: '',
-        coverPhoto: '',
-        startDate: '',
-        endDate: '',
-        isPrivate: false
-      })
-
+      setFormData(EMPTY_TRIP)
       onClose()
-
     } catch (error) {
       console.error('Trip creation failed:', error)
-
-      toast.error(
-        error?.response?.data?.message ||
-        'Failed to create trip. Please try again.'
-      )
+      toast.error(getErrorMessage(error, 'Failed to create trip. Please try again.'))
+    } finally {
+      setSubmitting(false)
     }
   }
 
-   
-
-
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0]
-
+  const uploadCover = async (file) => {
     if (!file) return
 
     try {
       setUploading(true)
-
-      const isVideo = file.type.startsWith('video/')
-
-      const url = await uploadToCloudinary(
-        file,
-        isVideo ? 'video' : 'image'
-      )
-
-      setFormData((prev) => ({
-        ...prev,
-        coverPhoto: url
-      }))
-
-      toast.success('Cover photo uploaded successfully!')
-
+      const url = await uploadToCloudinary(file, 'image')
+      setFormData((prev) => ({ ...prev, coverPhoto: url }))
     } catch (error) {
       console.error('Upload failed:', error)
-
       toast.error('Failed to upload cover photo.')
-
     } finally {
       setUploading(false)
     }
   }
 
-  const handleButtonClick = () => {
-
-    document.getElementById("coverPhoto").click();
-  };
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (!uploading) uploadCover(e.dataTransfer.files?.[0])
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create New Trip</DialogTitle>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) resetAndClose() }}>
+      <DialogContent className="flex max-h-[92vh] flex-col gap-0 p-0 sm:max-w-[520px]">
+        <DialogHeader className="px-6 pb-4 pt-6">
+          <DialogTitle>Create a new trip</DialogTitle>
           <DialogDescription>
-            Create a new trip album to share memories with friends and family. Fill in the details below to get started.
+            Set up a shared album for your trip. You can invite friends right after.
           </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Trip Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Trip Name</Label>
-            <Input
-              id="name"
-              placeholder="e.g., Trip to Bali"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Tell us about your trip..."
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-            />
-          </div>
-
-          {/* Cover Photo */}
-      <div className="space-y-2">
-      <Label htmlFor="coverPhoto">Cover Photo</Label>
-
-      <div className="flex space-x-2 items-center">
-        
-        <Input
-          id="coverPhoto"
-          type="file"
-          accept="image/*"
-          placeholder="https://example.com/photo.jpg"
-          // value={formData.coverPhoto}
-          onChange={handleFileChange}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={handleButtonClick}
-        >
-          <Upload className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* {preview && (
-        <div className="mt-3">
-          <img
-            src={preview}
-            alt="Cover Preview"
-            className="w-full h-48 object-cover rounded-lg border"
-          />
-        </div>
-      )} */}
-    </div>
-          {/* <div className="space-y-2">
-            <Label htmlFor="coverPhoto">Cover Photo URL</Label>
-            <div className="flex space-x-2">
-              <Input
-                id="coverPhoto"
-                placeholder="https://example.com/photo.jpg"
-                value={formData.coverPhoto}
-                onChange={(e) => setFormData({ ...formData, coverPhoto: e.target.value })}
-              />
-              <Button type="button" variant="outline" size="icon">
-                <Upload className="h-4 w-4" />
-              </Button>
-            </div>
-          </div> */}
-
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-4">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
+              <Label htmlFor="name">Trip name</Label>
               <Input
-                id="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                id="name"
+                placeholder="e.g., Summer in Bali"
+                value={formData.name}
+                onChange={update('name')}
                 required
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="What is this trip about?"
+                value={formData.description}
+                onChange={update('description')}
+                rows={3}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="coverPhoto">Cover photo</Label>
+              {formData.coverPhoto ? (
+                <div className="relative overflow-hidden rounded-xl border bg-muted">
+                  <img src={formData.coverPhoto} alt="Cover preview" className="h-40 w-full object-cover" />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="absolute right-2 top-2 rounded-full bg-black/50 text-white backdrop-blur-md hover:bg-black/70"
+                    onClick={() => setFormData((prev) => ({ ...prev, coverPhoto: '' }))}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <label
+                  htmlFor="coverPhoto"
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  className={`flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-7 text-center transition-colors ${
+                    isDragging
+                      ? 'border-primary bg-primary/5'
+                      : 'border-muted-foreground/30 hover:border-primary/60 hover:bg-muted/50'
+                  }`}
+                >
+                  {uploading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {uploading ? 'Uploading cover photo...' : 'Click to upload or drag and drop'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">Optional. We'll use a default if you skip it.</span>
+                  <input
+                    id="coverPhoto"
+                    type="file"
+                    accept="image/*,.heic,.heif"
+                    className="sr-only"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      uploadCover(e.target.files?.[0])
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start date</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={update('startDate')}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End date</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  min={formData.startDate || undefined}
+                  value={formData.endDate}
+                  onChange={update('endDate')}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-start justify-between gap-4 rounded-xl border bg-muted/40 p-4">
+              <div className="flex gap-3">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                  <Lock className="h-4 w-4" />
+                </span>
+                <div>
+                  <Label htmlFor="private" className="cursor-pointer">Private trip</Label>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Only people you invite can see this album.
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="private"
+                checked={formData.isPrivate}
+                onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isPrivate: checked }))}
               />
             </div>
           </div>
 
-          {/* Privacy */}
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="private"
-              checked={formData.isPrivate}
-              onCheckedChange={(checked) => setFormData({ ...formData, isPrivate: checked })}
-            />
-            <Label htmlFor="private">Private trip (only invited participants can see)</Label>
-          </div>
-
-          {/* Participants */}
-          <div className="space-y-2">
-            <Label>Participants</Label>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>You'll be able to invite friends after creating the trip</span>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-2 border-t px-6 py-4">
+            <Button type="button" variant="outline" onClick={resetAndClose} disabled={submitting}>
               Cancel
             </Button>
-            <Button type="submit">
-              Create Trip
+            <Button type="submit" disabled={uploading || submitting}>
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : uploading ? (
+                'Uploading photo...'
+              ) : (
+                'Create trip'
+              )}
             </Button>
           </div>
         </form>
