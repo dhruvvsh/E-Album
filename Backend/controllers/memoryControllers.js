@@ -1,6 +1,7 @@
 import Memory from "../models/memoriesModel.js";
 import Trip from "../models/tripModel.js";
-import cloudinary, {getPublicId} from "../utils/cloudinary.js";
+import { destroyImages } from "../utils/cloudinary.js";
+import { isParticipant } from "../utils/tripAccess.js";
 
 // CREATE MEMORY
 export const createMemory = async (req, res) => {
@@ -11,8 +12,8 @@ export const createMemory = async (req, res) => {
     const trip = await Trip.findById(tripId);
     if (!trip) return res.status(404).json({ message: "Trip not found" });
 
-    // Check access
-    if (trip.isPrivate && !trip.participants.includes(req.user._id)) {
+    // Only participants can add memories
+    if (!isParticipant(trip, req.user._id)) {
       return res.status(403).json({ message: "Access denied" });
     }
 
@@ -27,7 +28,7 @@ export const createMemory = async (req, res) => {
     });
 
     const savedMemory = await newMemory.save();
-    await savedMemory.populate("author", "name email ");
+    await savedMemory.populate("author", "username email");
 
     res.status(201).json(savedMemory);
   } catch (error) {
@@ -38,8 +39,9 @@ export const createMemory = async (req, res) => {
 // GET ALL MEMORIES
 export const getMemories = async (req, res) => {
   try {
-    const memories = await Memory.find()
-      .populate("author", "name email")
+    const myTrips = await Trip.find({ participants: req.user._id }).select("_id");
+    const memories = await Memory.find({ tripId: { $in: myTrips.map((t) => t._id) } })
+      .populate("author", "username email")
       .sort({ createdAt: -1 });
 
     res.json(memories);
@@ -55,12 +57,12 @@ export const getMemoriesByTrip = async (req, res) => {
     if (!trip) return res.status(404).json({ message: "Trip not found" });
 
     // Check access
-    if (trip.isPrivate && !trip.participants.includes(req.user._id)) {
+    if (trip.isPrivate && !isParticipant(trip, req.user._id)) {
       return res.status(403).json({ message: "Access denied" });
     }
 
     const memories = await Memory.find({ tripId: req.params.tripId })
-      .populate("author", "name email")
+      .populate("author", "username email")
       .sort({ createdAt: -1 });
 
     res.json(memories);
@@ -75,8 +77,13 @@ export const toggleFavorite = async (req, res) => {
     const memory = await Memory.findById(req.params.id);
     if (!memory) return res.status(404).json({ message: "Memory not found" });
 
+    const trip = await Trip.findById(memory.tripId);
+    if (!trip || !isParticipant(trip, req.user._id)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     const userId = req.user._id;
-    const isFavorited = memory.isFavorite.includes(userId);
+    const isFavorited = memory.isFavorite.some((id) => id.toString() === userId.toString());
 
     if (isFavorited) {
       // Remove from favorites
@@ -89,7 +96,7 @@ export const toggleFavorite = async (req, res) => {
     }
 
     await memory.save();
-    await memory.populate("author", "name email");
+    await memory.populate("author", "username email");
 
     res.json({
       message: isFavorited ? "Removed from favorites" : "Added to favorites",
@@ -114,13 +121,13 @@ export const updateMemory = async (req, res) => {
 
     const { image, description, caption, location } = req.body;
 
-    if (image) memory.image = image;
-    if (description) memory.description = description;
-    if (caption) memory.caption = caption;
-    if (location) memory.location = location;
+    if (image !== undefined) memory.image = image;
+    if (description !== undefined) memory.description = description;
+    if (caption !== undefined) memory.caption = caption;
+    if (location !== undefined) memory.location = location;
 
     const updatedMemory = await memory.save();
-    await updatedMemory.populate("author", "name email");
+    await updatedMemory.populate("author", "username email");
 
     res.json(updatedMemory);
   } catch (error) {
@@ -139,6 +146,7 @@ export const deleteMemory = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    await destroyImages([memory.image]);
     await Memory.findByIdAndDelete(req.params.id);
     res.json({ message: "Memory deleted successfully" });
   } catch (error) {
@@ -146,27 +154,27 @@ export const deleteMemory = async (req, res) => {
   }
 };
 
-export const deleteMemoryGroup = async (req,res) =>{
+// DELETE MEMORY GROUP (only the caller's own memories are deleted)
+export const deleteMemoryGroup = async (req, res) => {
   try {
-    const {memoryIds} = req.body
-    if (!memoryIds) return res.status(404).json({ message: "Memory group not found" });
-
-    const memories = await Memory.find({ _id: { $in: memoryIds } });
-    for (const memory of memories) {
-      const memoryPublicId = getPublicId(memory.image);
-      memory.image && (await cloudinary.uploader.destroy(memoryPublicId));
+    const { memoryIds } = req.body;
+    if (!Array.isArray(memoryIds) || memoryIds.length === 0) {
+      return res.status(400).json({ message: "memoryIds must be a non-empty array" });
     }
-      await Memory.deleteMany({ _id: 
-        { $in: memoryIds }
-       });
-    
-    res.json({ message: "Memory group deleted successfully" });
 
+    const memories = await Memory.find({
+      _id: { $in: memoryIds },
+      author: req.user._id,
+    });
+    if (memories.length !== memoryIds.length) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    await destroyImages(memories.map((m) => m.image));
+    await Memory.deleteMany({ _id: { $in: memories.map((m) => m._id) } });
+
+    res.json({ message: "Memory group deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
-}
-
-
-
-
+};

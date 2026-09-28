@@ -3,9 +3,15 @@ import Trip from "../models/tripModel.js";
 import TripInvite from "../models/tripInviteModel.js";
 import sendMail from "../utils/sendMail.js";
 
+const escapeHtml = (str) =>
+    String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
 export const inviteParticipant = async (req, res) => {
     try {
         const { email } = req.body;
+        if (typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email.trim())) {
+            return res.status(400).json({ message: "A valid email is required" });
+        }
         const tripId = req.params.id;
 
         const trip = await Trip.findById(tripId);
@@ -33,7 +39,7 @@ export const inviteParticipant = async (req, res) => {
         await TripInvite.create({
             trip: tripId,
             invitedBy: req.user._id,
-            email,
+            email: email.trim(),
             token,
             expiresAt,
         });
@@ -45,7 +51,7 @@ export const inviteParticipant = async (req, res) => {
             to: email,
             subject: "Trip Invitation",
             html: `
-        <h2>You are invited to join trip: ${trip.tripName}</h2>
+        <h2>You are invited to join trip: ${escapeHtml(trip.tripName)}</h2>
 
         <a href="${inviteLink}">
           Join Trip

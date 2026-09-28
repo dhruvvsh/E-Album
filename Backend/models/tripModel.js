@@ -40,6 +40,8 @@ const tripSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+tripSchema.index({ participants: 1 });
+
 const Trip = mongoose.model("Trip", tripSchema);
 
 export default Trip;

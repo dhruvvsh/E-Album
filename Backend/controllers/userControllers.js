@@ -7,6 +7,13 @@ export const registerUser = async (req, res) => {
   try{
   const { username, email, password } = req.body;
 
+  if (![username, email, password].every((v) => typeof v === "string" && v.trim())) {
+    return res.status(400).json({ message: "Username, email and password are required" });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters" });
+  }
+
   // Check existing user
   const userExists = await User.findOne({ email });
   if (userExists)
@@ -37,13 +44,15 @@ export const loginUser = async (req, res) => {
   try {
   const { email, password } = req.body;
 
-  // Check user
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: "User not found" });
+  // reject objects like {"$gt": ""} (NoSQL injection)
+  if (typeof email !== "string" || typeof password !== "string") {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
 
-  // Validate password
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+  // Same response for unknown email and wrong password (no user enumeration)
+  const user = await User.findOne({ email });
+  const isMatch = user && (await bcrypt.compare(password, user.password));
+  if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
 
   res.json({
     message: "Login successful",

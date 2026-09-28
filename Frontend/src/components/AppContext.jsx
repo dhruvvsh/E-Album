@@ -3,6 +3,7 @@ import { toast } from 'react-toastify'
 import { useAuth } from './auth/AuthContext.jsx'
 import api, { getErrorMessage } from '@/lib/api'
 import { toWebImageUrl } from '@/lib/media'
+import { getDisplayName } from '@/lib/format'
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dvgywczai'
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'E-album'
@@ -118,7 +119,7 @@ export const AppProvider = ({ children }) => {
     const query = searchQuery.toLowerCase()
     return allMemories.filter(memory =>
       memory.description?.toLowerCase().includes(query) ||
-      memory.author?.name?.toLowerCase().includes(query) ||
+      getDisplayName(memory.author).toLowerCase().includes(query) ||
       memory.location?.toLowerCase().includes(query)
     )
   }, [allMemories, searchQuery])

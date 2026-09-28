@@ -32,5 +32,20 @@ export const getPublicId = (url) => {
   const publicId = filename.split('.')[0];
   return publicId;
 }
-   export default cloudinary;
+
+// Delete images from Cloudinary. Never throws: missing credentials or a failed
+// request is logged and skipped so it cannot block deleting the DB records.
+export const destroyImages = async (urls) => {
+  await Promise.all(
+    urls.filter(Boolean).map(async (url) => {
+      try {
+        await cloudinary.uploader.destroy(getPublicId(url));
+      } catch (error) {
+        console.error(`Cloudinary delete failed for ${url}:`, error.message || error);
+      }
+    })
+  );
+};
+
+export default cloudinary;
 // export { uploadOnCloudinary };

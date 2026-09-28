@@ -16,7 +16,9 @@ cloudinaryConfig();
 const app = express();
 
 // Middlewares
-app.use(cors());
+// only the frontend may call the API
+const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:5173"].filter(Boolean);
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 app.use("/users", userrouter);
 app.use("/trips", triprouter);
@@ -26,7 +28,7 @@ app.use("/memories", memoryrouter);
 // Connect MongoDB
 connectDB()
   .then(() => {
-    app.listen(`${process.env.PORT}` || 5001, () => {
+    app.listen(process.env.PORT || 5001, () => {
       console.log(`🚀 Server running on port: ${process.env.PORT || 5001}`);
     });
   })

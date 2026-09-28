@@ -17,6 +17,8 @@ const tripInviteSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      lowercase: true,
+      trim: true,
     },
 
     token: {
@@ -37,6 +39,9 @@ const tripInviteSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// remove expired invites automatically
+tripInviteSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const TripInvite = mongoose.model("TripInvite", tripInviteSchema);
 

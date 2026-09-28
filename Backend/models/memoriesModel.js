@@ -40,6 +40,8 @@ const memoriesSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+memoriesSchema.index({ tripId: 1, createdAt: -1 });
+
 const Memory = mongoose.model("Memory", memoriesSchema);
 
 export default Memory;

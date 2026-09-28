@@ -3,6 +3,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
+import { getDisplayName } from '@/lib/format'
 
 export function MemoryCard({ 
   memory, 
@@ -28,13 +29,13 @@ export function MemoryCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={memory.author.avatar} alt={memory.author.name} />
+              <AvatarImage src={memory.author.avatar} alt={getDisplayName(memory.author)} />
               <AvatarFallback>
                 {memory.author.email.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium">{memory.author.name}</p>
+              <p className="font-medium">{getDisplayName(memory.author)}</p>
               <div className="flex items-center text-sm text-muted-foreground">
                 <span>{formatTimeAgo(memory.timestamp)}</span>
                 {showTripName && tripName && (
@@ -99,7 +100,7 @@ export function MemoryCard({
           {/* Description */}
           <div className="space-y-2">
             <p className="text-sm">
-              <span className="font-medium">{memory.author.name}</span>{' '}
+              <span className="font-medium">{getDisplayName(memory.author)}</span>{' '}
               {memory.description}
             </p>
             
